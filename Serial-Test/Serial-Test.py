@@ -14,8 +14,9 @@
 
 import serial
 import time
+i = 0
 ser = serial.Serial('/dev/ttyACM0', 9600)
 time.sleep(5)
-ser.write(b'35\t')
-ser.write(b'0\t')
-ser.write(b'7\t')
+while i<3:
+	ser.write(b'35\t0\t7\t')
+	i += 1

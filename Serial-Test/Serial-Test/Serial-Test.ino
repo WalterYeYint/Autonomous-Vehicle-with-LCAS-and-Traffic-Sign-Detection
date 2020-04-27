@@ -15,13 +15,17 @@
 
 
 
-int r = 1;
+String r;
 void setup(){
   Serial.begin(9600);
 }
 void loop(){
   if(Serial.available()){         //From RPi to Arduino
-    r = r * (Serial.read() - '0');  //conveting the value of chars to integer
-    Serial.println(r);
+    for(int i=0; i<3; i++){
+      r = (Serial.readStringUntil('\t'));  //conveting the value of chars to integer
+      Serial.print(r.toInt());
+      Serial.print('\t');
+    }
+    Serial.println();
   }
 }
