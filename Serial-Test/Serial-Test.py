@@ -14,10 +14,8 @@
 
 import serial
 import time
-i = 0
 ser = serial.Serial('/dev/ttyACM0', 9600)
 time.sleep(5)
-while i<3:
+while True:
 	x = int(input("Enter data[0]:"))
 	ser.write(b'%d\t0\t7\t' % x)
-	i += 1

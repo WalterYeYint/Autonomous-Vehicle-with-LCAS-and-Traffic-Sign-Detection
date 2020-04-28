@@ -20,6 +20,7 @@ int data[3];
 int setpoint = 0;
 void setup(){
   Serial.begin(9600);
+  delay(5000);
 }
 void loop(){
   if(Serial.available()){         //From RPi to Arduino
@@ -29,16 +30,27 @@ void loop(){
       Serial.print(data[i]);
       Serial.print('\t');
     }
-    Serial.println();
-    if(data[0] > setpoint){
-      Serial.print(data[0]);
-      Serial.print(" is bigger than ");
-      Serial.println(setpoint);
+    printfunc();
+  }
+  else{
+    for(int i=0; i<3; i++){
+      Serial.print(data[i]);
+      Serial.print('\t');  
     }
-    else{
-      Serial.print(data[0]);
-      Serial.print(" is less than ");
-      Serial.println(setpoint);
-    }
+    printfunc();
+  }
+}
+
+void printfunc(){
+  Serial.println();
+  if(data[0] > setpoint){
+    Serial.print(data[0]);
+    Serial.print(" is bigger than ");
+    Serial.println(setpoint);
+  }
+  else{
+    Serial.print(data[0]);
+    Serial.print(" is less than ");
+    Serial.println(setpoint);
   }
 }
