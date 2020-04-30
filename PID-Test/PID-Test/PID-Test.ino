@@ -7,16 +7,17 @@
 //value 1 ==> Kp = 6.5, Ki = 0, Kd = 1.1
 
 String r;
-float data[3];
+float data[4];
 
-long duration, cm = 0;
+long duration = 0;
+long cm = 20;
 //float Kp = 15.1;        //2.5 = default, 6.5 = perfect, 26.5 = shakin                                              //Initial Proportional Gain
 //float Ki = 0.15;                                                      //Initial Integral Gain
 //float Kd = 0.05;  //Intitial Derivative Gain
 float Kp = 0;        //2.5 = default, 6.5 = perfect, 26.5 = shakin                                              //Initial Proportional Gain
 float Ki = 0;                                                      //Initial Integral Gain
 float Kd = 0;   
-double Setpoint, Input, Output;                                       
+double Setpoint = 25, Input, Output;                                       
 
 PID myPID(&Input, &Output, &Setpoint, Kp, Ki, Kd, DIRECT);           //Initialize PID object, which is in the class PID.
 
@@ -28,13 +29,13 @@ void setup() {
   Input = cm;       
  
   myPID.SetMode(AUTOMATIC);                                          //Set PID object myPID to AUTOMATIC 
-  myPID.SetOutputLimits(0, 100);                                     //Set Output limits to -80 and 80 degrees. 
+  myPID.SetOutputLimits(-100, 100);                                     //Set Output limits to -80 and 80 degrees. 
 }
 
 void loop()
 {
   if(Serial.available()){ 
-    for(int i=0; i<3; i++){
+    for(int i=0; i<4; i++){
       r = (Serial.readStringUntil('\t'));  //conveting the value of chars to integer
       data[i] = r.toFloat();
 //      Serial.print(data[i]);
@@ -43,22 +44,22 @@ void loop()
     Kp = data[0];
     Ki = data[1];
     Kd = data[2];
+    Setpoint = data[3];
     myPID.SetTunings(Kp, Ki, Kd);
   }
-  Setpoint = 100;
   Input = cm;     
   myPID.Compute();
-//  Serial.print(cm);
-//  Serial.print(" ");     
-//  Serial.print(Setpoint);
+  Serial.print(cm);
+  Serial.print(" ");     
+  Serial.println(Setpoint);
 //  Serial.print(" "); 
-//  Serial.print(Output);
+//  Serial.println(Output);
 //  Serial.println("");
-    Serial.print(Kp);
-    Serial.print(" ");
-    Serial.print(Ki);
-    Serial.print(" ");
-    Serial.println(Kd);
+//    Serial.print(Kp);
+//    Serial.print(" ");
+//    Serial.print(Ki);
+//    Serial.print(" ");
+//    Serial.println(Kd);
   cm = cm + Output;                              
   
   
