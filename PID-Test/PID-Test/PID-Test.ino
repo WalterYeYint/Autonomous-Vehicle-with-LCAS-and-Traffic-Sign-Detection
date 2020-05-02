@@ -61,6 +61,5 @@ void loop()
 //    Serial.print(" ");
 //    Serial.println(Kd);
   cm = cm + Output;                              
-  
-  
+  delay(100);
 }
