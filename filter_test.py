@@ -2,11 +2,21 @@ import cv2
 import numpy as np
 import matplotlib.pyplot as plt
 
-def detecting_contour(img):
-    imgray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-    ret, thresh = cv2.threshold(imgray, 127, 255, 0)
-    contours, hierarchy = cv2.findContours(thresh, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
-    return contours
+def detecting_contour(img, frame):
+    contours_blk, hierarchy_blk = cv2.findContours(img.copy(),cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
+    if len(contours_blk) > 0:    
+        blackbox = cv2.minAreaRect(contours_blk[0])     # minAreaRect( center (x,y), (width, height), angle of rotation )
+        (x_min, y_min), (w_min, h_min), ang = blackbox
+    height, width, _ = frame.shape
+    setpoint = width / 2
+    error = int(x_min + w_min/2 - setpoint)
+    cv2.putText(frame,str(error),(10, 320), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 0, 0), 2)
+    cv2.line(frame, (int(x_min),200 ), (int(x_min),250 ), (255,0,0),3)
+    box = cv2.boxPoints(blackbox)
+    box = np.int0(box)      #to convert from float to int
+    cv2.drawContours(frame,[box],0,(0,0,255),3)  
+    # cv2.rectangle(frame, (int(x_min), int(y_min)), (int(x_min+w_min), int(y_min+h_min)), (0,255,0),3)
+    #cv2.rectangle(frame, (100, 100), (200, 200),(0,255,0),3)
 
 def detecting_edges(img):
     # hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
@@ -16,9 +26,15 @@ def detecting_edges(img):
     # upper_white = np.array([180, 100, 255])
     # mask = cv2.inRange(hsv, lower_white, upper_white)
 
-    # lower_red = np.array([170, 100, 0])
+    # lower_red = np.array([150, 100, 0])
     # upper_red = np.array([180, 255, 255])
     # mask = cv2.inRange(hsv, lower_red, upper_red)
+
+    # if you need full red color range uncomment the following 4 line (not helpful though)
+    # lower_red_2 = np.array([0, 100, 0])
+    # upper_red_2 = np.array([30, 255, 255])
+    # mask_2 = cv2.inRange(hsv, lower_red_2, upper_red_2)
+    # mask = cv2.bitwise_or(mask, mask_2)
 
     # lower_blue = np.array([60, 40, 40])
     # upper_blue = np.array([150, 255, 255])
@@ -26,8 +42,16 @@ def detecting_edges(img):
 
     # #Convert to grayscale then dilate and erode
     kernel = np.ones((3,3), np.uint8)
-    gray = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
-    mask = cv2.inRange(gray, 210, 255)
+
+    # mask for black line
+    # mask = cv2.inRange(img, (50,70,0), (100,100,255))
+    # gray = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
+    # mask = cv2.inRange(gray, 0, 100)
+
+    # mask for white line
+    # gray = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
+    # mask = cv2.inRange(gray, 210, 255)
+
     mask = cv2.erode(mask, kernel, iterations=5)
     mask = cv2.dilate(mask, kernel, iterations=9)
 
@@ -133,7 +157,7 @@ def average_slope_intercept_middle_line(frame, line_segments):
             intercept = fit[1]
             middle_fit.append((slope, intercept))
 
-    middle_fit_average = np.aveerage(middle_fit, axis=0)
+    middle_fit_average = np.average(middle_fit, axis=0)
     if len(middle_fit) > 0:
         lane_lines.append(make_coordinates(frame, middle_fit_average))
 
@@ -162,7 +186,7 @@ def detect_lane(lane_image):
     canny_image = detecting_edges(lane_image)
     cropped_image = region_of_interest(canny_image)
     lines = detect_line_segments(cropped_image)
-    averaged_lines = average_slope_intercept_middle_line(lane_image, lines)
+    averaged_lines = average_slope_intercept(lane_image, lines)
     return averaged_lines
 
 def display_lines(frame, lines, line_color=(0, 255, 0), line_width=2):
@@ -188,21 +212,11 @@ def test_video(video_file):
         if ret == True:
             #contour_image = detecting_contour(frame)
             canny_image = detecting_edges(frame)
-
-
-            contours_blk, hierarchy_blk = cv2.findContours(canny_image.copy(),cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
-            if len(contours_blk) > 0:    
-                blackbox = cv2.minAreaRect(contours_blk[0])
-                (x_min, y_min), (w_min, h_min), ang = blackbox
-            height, width, _ = frame.shape
-            setpoint = width / 2
-            error = int(x_min - setpoint)
-            cv2.putText(canny_image,str(error),(10, 320), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 0, 0), 2)
-            cv2.line(canny_image, (int(x_min),200 ), (int(x_min),250 ), (255,0,0),3)
-
-            #cropped_image = region_of_interest(canny_image)
+            # cropped_image = region_of_interest(canny_image)
+            # detecting_contour(cropped_image, frame)
+            
             # lines = detect_line_segments(cropped_image)
-            # averaged_lines = average_slope_intercept(frame, lines)
+            # averaged_lines = average_slope_intercept_middle_line(frame, lines)
             # lane_lines_image = display_lines(frame, averaged_lines)
             cv2.imshow("result", canny_image)
             if cv2.waitKey(10) & 0xFF == ord('q'):
@@ -219,7 +233,6 @@ def test_photo(photo_file):
     image_re = cv2.resize(image, (960, 721))
     lane_image = np.copy(image_re)
 
-
     # averaged_lines = detect_lane(lane_image)
     # print(averaged_lines)
     # lane_lines_image = display_lines(lane_image, averaged_lines)
@@ -231,12 +244,16 @@ def test_photo(photo_file):
     #For testing bit by bit
 
     canny_image = detecting_edges(lane_image)
+    cropped_image = region_of_interest(canny_image)
+    detecting_contour(cropped_image, lane_image)
     #canny_image = detecting_edges_grayscale(lane_image)
-    cv2.imshow("original", image_re)
-    cv2.imshow("lane lines", canny_image)
+    cv2.imshow("original", lane_image)
     cv2.waitKey(0)
 
 
 #test_photo('test_lane.jpeg')
-#test_photo('black_white_line.jpg')
-test_video('white_line.mp4')
+#test_photo('white_line.jpg')
+#test_video('white_line_2.mp4')
+# test_video('black_line.mp4')
+test_video('black_line_2.mp4')
+# test_video('red_line.mp4')
