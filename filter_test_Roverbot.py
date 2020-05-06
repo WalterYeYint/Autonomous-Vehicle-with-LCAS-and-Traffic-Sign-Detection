@@ -1,3 +1,7 @@
+# Program from Roverbot
+# https://gist.github.com/flyboy74
+# https://www.youtube.com/watch?v=tpwokAPiqfs
+
 import cv2
 import numpy as np
 import VisionUtils
