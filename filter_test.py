@@ -94,7 +94,7 @@ def detect_line_segments(cropped_edges):
     # tuning min_threshold, minLineLength, maxLineGap is a trial and error process by hand
     rho = 1  # precision in pixel, i.e. 1 pixel
     angle = np.pi / 180  # degree in radian, i.e. 1 degree
-    min_threshold = 10  # minimal of votes
+    min_threshold = 40  # minimal of votes
     line_segments = cv2.HoughLinesP(cropped_edges, rho, angle, min_threshold, np.array([]), minLineLength=8,
                                     maxLineGap=4)
     return line_segments
@@ -208,9 +208,9 @@ def steer(frame, lane_lines, curr_steering_angle):
 
         new_steering_angle = compute_steering_angle(frame, lane_lines)
         curr_steering_angle = stabilize_steering_angle(curr_steering_angle, new_steering_angle, len(lane_lines))
-
+        cv2.putText(frame,'STA: {0:.2f}'.format(curr_steering_angle),(30,50),cv2.FONT_HERSHEY_SIMPLEX,1,(255,255,0),2,cv2.LINE_AA)
         curr_heading_image = display_heading_line(frame, curr_steering_angle)
-        cv2.imshow("heading", curr_heading_image)
+        #cv2.imshow("heading", curr_heading_image)
 
         return curr_heading_image
 
@@ -229,7 +229,8 @@ def compute_steering_angle(frame, lane_lines):
     else:
         _, _, left_x2, _ = lane_lines[0][0]
         _, _, right_x2, _ = lane_lines[1][0]
-        camera_mid_offset_percent = 0.02 # 0.0 means car pointing to center, -0.03: car is centered to left, +0.03 means car pointing to right
+        # camera_mid_offset_percent = 0.02 # 0.0 means car pointing to center, -0.03: car is centered to left, +0.03 means car pointing to right
+        camera_mid_offset_percent = 0.00
         mid = int(width / 2 * (1 + camera_mid_offset_percent))
         x_offset = (left_x2 + right_x2) / 2 - mid
 
