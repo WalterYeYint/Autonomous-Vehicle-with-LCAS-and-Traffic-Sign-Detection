@@ -10,9 +10,21 @@ import time
 from picamera.array import PiRGBArray
 from picamera import PiCamera
 
+from threading import Thread
+import serial
+import time
 
+#define serial variable for communication
+ser = serial.Serial('/dev/ttyACM0', 9600)
 
 curr_steering_angle = 90
+
+####################################################################################
+# Function for transferring data from Pi to Arduino
+####################################################################################
+def transfer_data(offset):
+    ser.write(b'%f\t%f\t%f\t%f\t' % (float(offset), 10, 20, 30))
+
 
 def detecting_contour(img, frame):
     contours_blk, hierarchy_blk = cv2.findContours(img.copy(),cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
@@ -338,6 +350,7 @@ def video_live():
 
     # allow the camera to warmup
     time.sleep(0.1)
+
     # capture frames from the camera
     for image in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True):
         # grab the raw NumPy array representing the image, then initialize the timestamp
@@ -350,7 +363,8 @@ def video_live():
         # insert FPS
         # cv2.putText(combo_image,'FPS: {0:.2f}'.format(frame_rate_calc),(30,50),cv2.FONT_HERSHEY_SIMPLEX,1,(255,255,0),2,cv2.LINE_AA)
 
-        final_image = steer(lane_lines_image, averaged_lines, curr_steering_angle)
+        final_image,  = steer(lane_lines_image, averaged_lines, curr_steering_angle)
+        transfer_data(curr_steering_angle)
 
         # show the frame
         cv2.imshow("result2", final_image)
@@ -373,4 +387,5 @@ if __name__ == '__main__':
     #test_photo('red_line.jpg')
     #test_photo(sys.argv[1])
     #test_video(sys.argv[1])
+    Thread(target=video_live, args=()).start()
     video_live()

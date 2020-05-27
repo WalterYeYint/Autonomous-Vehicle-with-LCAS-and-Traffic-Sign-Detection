@@ -2,6 +2,7 @@ import cv2
 import numpy as np
 import matplotlib.pyplot as plt
 import math
+from threading import Thread
 
 curr_steering_angle = 90
 
@@ -207,9 +208,12 @@ def steer(frame, lane_lines, curr_steering_angle):
             return frame
 
         new_steering_angle = compute_steering_angle(frame, lane_lines)
-        curr_steering_angle = stabilize_steering_angle(curr_steering_angle, new_steering_angle, len(lane_lines))
-        cv2.putText(frame,'STA: {0:.2f}'.format(curr_steering_angle),(30,50),cv2.FONT_HERSHEY_SIMPLEX,1,(255,255,0),2,cv2.LINE_AA)
-        curr_heading_image = display_heading_line(frame, curr_steering_angle)
+        # curr_steering_angle = stabilize_steering_angle(curr_steering_angle, new_steering_angle, len(lane_lines))
+        # cv2.putText(frame,'STA: {0:.2f}'.format(curr_steering_angle),(30,50),cv2.FONT_HERSHEY_SIMPLEX,1,(255,255,0),2,cv2.LINE_AA)
+        # curr_heading_image = display_heading_line(frame, curr_steering_angle)
+        cv2.putText(frame,'STA: {0:.2f}'.format(new_steering_angle),(30,50),cv2.FONT_HERSHEY_SIMPLEX,1,(255,255,0),2,cv2.LINE_AA)
+        curr_heading_image = display_heading_line(frame, new_steering_angle)
+
         #cv2.imshow("heading", curr_heading_image)
 
         return curr_heading_image
@@ -366,4 +370,7 @@ def test_photo(photo_file):
 # test_video('red_line.mp4')
 # test_video('red_line_2.mp4')
 # test_video('red_line_night.mp4')
-test_video('red_lane.mp4')
+video_file = 'red_lane.mp4'
+
+Thread(target=test_video, args=(video_file)).start()
+#test_video('red_lane.mp4')
