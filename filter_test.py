@@ -26,11 +26,11 @@ def detecting_edges(img):
     hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
     # cv2.imshow("hsv image", hsv)
 
-    # lower_white = np.array([80, 0, 240])
-    # upper_white = np.array([110, 200, 255])
+    # lower_white = np.array([80, 0, 100])
+    # upper_white = np.array([110, 50, 255])
     # mask = cv2.inRange(hsv, lower_white, upper_white)
 
-    lower_red = np.array([150, 100, 125])
+    lower_red = np.array([150, 100, 100])
     upper_red = np.array([180, 255, 255])
     mask = cv2.inRange(hsv, lower_red, upper_red)
 
@@ -352,11 +352,12 @@ def test_photo(photo_file):
 
     ######################################################################################
     #For testing bit by bit
-
+    hsv = cv2.cvtColor(lane_image, cv2.COLOR_BGR2HSV)
     canny_image = detecting_edges(lane_image)
     cropped_image = region_of_interest(canny_image)
-    detecting_contour(cropped_image, lane_image)
+    # detecting_contour(cropped_image, lane_image)
     #canny_image = detecting_edges_grayscale(lane_image)
+    cv2.imshow("hsv", hsv)
     cv2.imshow("original", canny_image)
     cv2.waitKey(0)
 
@@ -368,9 +369,13 @@ def test_photo(photo_file):
 # test_video('black_line.mp4')
 # test_video('black_line_2.mp4')
 # test_video('black_line_night.mp4')
+# test_photo('red_line.jpg')
 # test_video('red_line.mp4')
 # test_video('red_line_2.mp4')
 # test_video('red_line_night.mp4')
-test_photo('cam2.jpg')
-
+# test_photo('red_line_IRcam2.jpg')
+# test_photo('red_line_IRcam.jpg')
+test_photo('red_line_IRcam3.jpg')
+# test_photo('white_line_IRcam.jpg')
+# test_photo('white_line_IRcam2.jpg')
 # test_video('red_lane.mp4')

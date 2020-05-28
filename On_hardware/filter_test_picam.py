@@ -35,7 +35,7 @@ def detecting_edges(img):
     # upper_white = np.array([110, 200, 255])
     # mask = cv2.inRange(hsv, lower_white, upper_white)
 
-    lower_red = np.array([150, 100, 125])
+    lower_red = np.array([150, 100, 105])
     upper_red = np.array([180, 255, 255])
     mask = cv2.inRange(hsv, lower_red, upper_red)
 
@@ -100,7 +100,7 @@ def detect_line_segments(cropped_edges):
     # tuning min_threshold, minLineLength, maxLineGap is a trial and error process by hand
     rho = 1  # precision in pixel, i.e. 1 pixel
     angle = np.pi / 180  # degree in radian, i.e. 1 degree
-    min_threshold = 40  # minimal of votes
+    min_threshold = 20  # minimal of votes
     line_segments = cv2.HoughLinesP(cropped_edges, rho, angle, min_threshold, np.array([]), minLineLength=8,
                                     maxLineGap=4)
     return line_segments
@@ -330,17 +330,19 @@ def video_live():
     # capture frames from the camera
     while True:
         frame = image.read()
-        canny_image = detecting_edges(frame)
-        # averaged_lines, lane_lines_image = detect_lane(frame)
+        # hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
+        # canny_image = detecting_edges(frame)
+        averaged_lines, lane_lines_image = detect_lane(frame)
 
         # insert FPS
         # cv2.putText(combo_image,'FPS: {0:.2f}'.format(frame_rate_calc),(30,50),cv2.FONT_HERSHEY_SIMPLEX,1,(255,255,0),2,cv2.LINE_AA)
 
-        # final_image = steer(lane_lines_image, averaged_lines, curr_steering_angle)
+        final_image = steer(lane_lines_image, averaged_lines, curr_steering_angle)
 
         # show the frame
-        cv2.imshow("canny result", canny_image)
-        # cv2.imshow("result2", final_image)
+        # cv2.imshow("hsv", hsv)
+        # cv2.imshow("canny result", canny_image)
+        cv2.imshow("result2", final_image)
         
         # if the `q` key was pressed, break from the loop
         if cv2.waitKey(10) & 0xFF == ord('q'):
