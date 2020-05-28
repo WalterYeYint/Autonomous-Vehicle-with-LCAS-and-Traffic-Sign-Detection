@@ -10,7 +10,6 @@ import time
 from picamera.array import PiRGBArray
 from picamera import PiCamera
 
-from threading import Thread
 import serial
 import time
 
@@ -387,5 +386,4 @@ if __name__ == '__main__':
     #test_photo('red_line.jpg')
     #test_photo(sys.argv[1])
     #test_video(sys.argv[1])
-    Thread(target=video_live, args=()).start()
     video_live()
