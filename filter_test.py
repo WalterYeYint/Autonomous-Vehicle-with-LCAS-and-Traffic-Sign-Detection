@@ -30,7 +30,7 @@ def detecting_edges(img):
     # upper_white = np.array([110, 200, 255])
     # mask = cv2.inRange(hsv, lower_white, upper_white)
 
-    lower_red = np.array([150, 50, 0])
+    lower_red = np.array([150, 100, 125])
     upper_red = np.array([180, 255, 255])
     mask = cv2.inRange(hsv, lower_red, upper_red)
 
@@ -312,9 +312,10 @@ def display_heading_line(frame, steering_angle, line_color=(0, 0, 255), line_wid
 
 
 
-
 def test_video(video_file):
+# def test_video():
     cap = cv2.VideoCapture(video_file)
+    # cap = cv2.VideoCapture('red_lane.mp4')
     while(cap.isOpened()):
         ret, frame = cap.read()
         if ret == True:
@@ -356,7 +357,7 @@ def test_photo(photo_file):
     cropped_image = region_of_interest(canny_image)
     detecting_contour(cropped_image, lane_image)
     #canny_image = detecting_edges_grayscale(lane_image)
-    cv2.imshow("original", lane_image)
+    cv2.imshow("original", canny_image)
     cv2.waitKey(0)
 
 
@@ -370,7 +371,6 @@ def test_photo(photo_file):
 # test_video('red_line.mp4')
 # test_video('red_line_2.mp4')
 # test_video('red_line_night.mp4')
-video_file = 'red_lane.mp4'
+test_photo('cam2.jpg')
 
-Thread(target=test_video, args=(video_file)).start()
-#test_video('red_lane.mp4')
+# test_video('red_lane.mp4')

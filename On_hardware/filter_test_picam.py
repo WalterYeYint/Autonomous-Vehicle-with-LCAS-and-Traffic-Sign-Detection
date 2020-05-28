@@ -7,10 +7,7 @@ import math
 import datetime
 import sys
 import time
-from picamera.array import PiRGBArray
-from picamera import PiCamera
-
-
+from Camera import PiVideoStream
 
 curr_steering_angle = 90
 
@@ -38,7 +35,7 @@ def detecting_edges(img):
     # upper_white = np.array([110, 200, 255])
     # mask = cv2.inRange(hsv, lower_white, upper_white)
 
-    lower_red = np.array([150, 50, 0])
+    lower_red = np.array([150, 100, 125])
     upper_red = np.array([180, 255, 255])
     mask = cv2.inRange(hsv, lower_red, upper_red)
 
@@ -326,45 +323,30 @@ def test_photo(file):
 
 
 def video_live():
-    camera = PiCamera()
-    #camera.resolution = (640, 480)
-    camera.resolution = (320, 240)
-    camera.rotation = 180
-    camera.framerate = 32
-    rawCapture = PiRGBArray(camera, size=(320, 240))
-    
-    frame_rate_calc = 1
-    freq = cv2.getTickFrequency()
+    image = PiVideoStream((320, 240), 32).start()
 
     # allow the camera to warmup
     time.sleep(0.1)
     # capture frames from the camera
-    for image in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True):
-        # grab the raw NumPy array representing the image, then initialize the timestamp
-        # and occupied/unoccupied text
-        t1 = cv2.getTickCount()
-        
-        frame = image.array
-        averaged_lines, lane_lines_image = detect_lane(frame)
+    while True:
+        frame = image.read()
+        canny_image = detecting_edges(frame)
+        # averaged_lines, lane_lines_image = detect_lane(frame)
 
         # insert FPS
         # cv2.putText(combo_image,'FPS: {0:.2f}'.format(frame_rate_calc),(30,50),cv2.FONT_HERSHEY_SIMPLEX,1,(255,255,0),2,cv2.LINE_AA)
 
-        final_image = steer(lane_lines_image, averaged_lines, curr_steering_angle)
+        # final_image = steer(lane_lines_image, averaged_lines, curr_steering_angle)
 
         # show the frame
-        cv2.imshow("result2", final_image)
+        cv2.imshow("canny result", canny_image)
+        # cv2.imshow("result2", final_image)
         
-        # Calculate framerate
-        t2 = cv2.getTickCount()
-        time1 = (t2-t1)/freq
-        frame_rate_calc= 1/time1
-        # clear the stream in preparation for the next frame
-        rawCapture.truncate(0)
         # if the `q` key was pressed, break from the loop
         if cv2.waitKey(10) & 0xFF == ord('q'):
                 break
-
+    cv2.destroyAllWindows()
+    image.close()
 
 if __name__ == '__main__':
     #logging.basicConfig(level=logging.INFO)
@@ -373,4 +355,5 @@ if __name__ == '__main__':
     #test_photo('red_line.jpg')
     #test_photo(sys.argv[1])
     #test_video(sys.argv[1])
+    
     video_live()
