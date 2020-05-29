@@ -25,6 +25,7 @@ float Kp = 0;        //2.5 = default, 6.5 = perfect, 26.5 = shakin              
 float Ki = 0;                                                      //Initial Integral Gain
 float Kd = 0;   
 double Setpoint = 90, Input, Output;                                       
+int baseSpeed = 100;
 
 PID myPID(&Input, &Output, &Setpoint, Kp, Ki, Kd, DIRECT);           //Initialize PID object, which is in the class PID.
 
@@ -80,12 +81,12 @@ void motorMove(int velocity){
   digitalWrite(L298N_C, LOW);
   digitalWrite(L298N_D, HIGH);
   if(velocity >= 0){
-    analogWrite(L298N_EN, abs(255 - velocity));
-    analogWrite(L298N_EN_B, 255);
+    analogWrite(L298N_EN, baseSpeed + abs(velocity));
+    analogWrite(L298N_EN_B, baseSpeed);
   }
   else{
-    analogWrite(L298N_EN, 255);
-    analogWrite(L298N_EN_B, abs(255 - velocity));
+    analogWrite(L298N_EN, baseSpeed);
+    analogWrite(L298N_EN_B, baseSpeed + abs(velocity));
   }
 }     
 
@@ -100,4 +101,3 @@ void readSerialData(){
     Input = data[0];
   }
 }
-

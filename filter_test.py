@@ -4,7 +4,19 @@ import matplotlib.pyplot as plt
 import math
 from threading import Thread
 
-curr_steering_angle = 90
+import serial
+import time
+
+#define serial variable for communication
+ser = serial.Serial('/dev/ttyACM0', 9600)
+
+time.sleep(7)
+
+####################################################################################
+# Function for transferring data from Pi to Arduino
+####################################################################################
+def transfer_data(offset):
+    ser.write(b'%f\t%f\t%f\t%f\t' % (float(offset), 10, 20, 30))
 
 def detecting_contour(img, frame):
     contours_blk, hierarchy_blk = cv2.findContours(img.copy(),cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
@@ -208,15 +220,15 @@ def steer(frame, lane_lines, curr_steering_angle):
             return frame
 
         new_steering_angle = compute_steering_angle(frame, lane_lines)
-        # curr_steering_angle = stabilize_steering_angle(curr_steering_angle, new_steering_angle, len(lane_lines))
-        # cv2.putText(frame,'STA: {0:.2f}'.format(curr_steering_angle),(30,50),cv2.FONT_HERSHEY_SIMPLEX,1,(255,255,0),2,cv2.LINE_AA)
-        # curr_heading_image = display_heading_line(frame, curr_steering_angle)
-        cv2.putText(frame,'STA: {0:.2f}'.format(new_steering_angle),(30,50),cv2.FONT_HERSHEY_SIMPLEX,1,(255,255,0),2,cv2.LINE_AA)
-        curr_heading_image = display_heading_line(frame, new_steering_angle)
+        curr_steering_angle = stabilize_steering_angle(curr_steering_angle, new_steering_angle, len(lane_lines))
+        cv2.putText(frame,'STA: {0:.2f}'.format(curr_steering_angle),(30,50),cv2.FONT_HERSHEY_SIMPLEX,1,(255,255,0),2,cv2.LINE_AA)
+        curr_heading_image = display_heading_line(frame, curr_steering_angle)
+        # cv2.putText(frame,'STA: {0:.2f}'.format(new_steering_angle),(30,50),cv2.FONT_HERSHEY_SIMPLEX,1,(255,255,0),2,cv2.LINE_AA)
+        # curr_heading_image = display_heading_line(frame, new_steering_angle)
 
         #cv2.imshow("heading", curr_heading_image)
 
-        return curr_heading_image
+        return curr_heading_image, curr_steering_angle
 
 def compute_steering_angle(frame, lane_lines):
     """ Find the steering angle based on lane line coordinate
@@ -224,7 +236,7 @@ def compute_steering_angle(frame, lane_lines):
     """
     if len(lane_lines) == 0:
         logging.info('No lane lines detected, do nothing')
-        return -90
+        return 90
 
     height, width, _ = frame.shape
     if len(lane_lines) == 1:
@@ -314,6 +326,7 @@ def display_heading_line(frame, steering_angle, line_color=(0, 0, 255), line_wid
 
 def test_video(video_file):
 # def test_video():
+    curr_angle = 90
     cap = cv2.VideoCapture(video_file)
     # cap = cv2.VideoCapture('red_lane.mp4')
     while(cap.isOpened()):
@@ -328,7 +341,9 @@ def test_video(video_file):
             
             # lines = detect_line_segments(cropped_image)
             # averaged_lines = average_slope_intercept_middle_line(frame, lines)
-            final_image = steer(lane_lines_image, averaged_lines, curr_steering_angle)
+            final_image, curr_angle = steer(lane_lines_image, averaged_lines, curr_angle)
+            print(curr_angle)
+            transfer_data(curr_angle)
             # cv2.imshow("result", canny_image)
             cv2.imshow("result2", final_image)
             if cv2.waitKey(10) & 0xFF == ord('q'):
@@ -375,7 +390,7 @@ def test_photo(photo_file):
 # test_video('red_line_night.mp4')
 # test_photo('red_line_IRcam2.jpg')
 # test_photo('red_line_IRcam.jpg')
-test_photo('red_line_IRcam3.jpg')
+# test_photo('red_line_IRcam3.jpg')
 # test_photo('white_line_IRcam.jpg')
 # test_photo('white_line_IRcam2.jpg')
-# test_video('red_lane.mp4')
+test_video('red_lane.mp4')

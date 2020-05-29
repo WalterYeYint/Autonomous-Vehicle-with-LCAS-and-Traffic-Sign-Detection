@@ -18,39 +18,30 @@
 String r;
 int data[3];
 int setpoint = 0;
+float Input = 90;
+float Kp = 0;        //2.5 = default, 6.5 = perfect, 26.5 = shakin                                              //Initial Proportional Gain
+float Ki = 0;                                                      //Initial Integral Gain
+float Kd = 0; 
 void setup(){
   Serial.begin(9600);
   delay(5000);
 }
 void loop(){
-  if(Serial.available()){         //From RPi to Arduino
-    for(int i=0; i<3; i++){
+  if(Serial.available()){
+    for(int i=0; i<4; i++){
       r = (Serial.readStringUntil('\t'));  //conveting the value of chars to integer
-      data[i] = r.toInt();
-      Serial.print(data[i]);
-      Serial.print('\t');
+      data[i] = r.toFloat();
+//      Serial.print(data[i]);
+//      Serial.print('\t');
     }
-    printfunc();
-  }
-  else{
-    for(int i=0; i<3; i++){
-      Serial.print(data[i]);
-      Serial.print('\t');  
-    }
-    printfunc();
+    Input = data[0];
+//    Kp = data[1];
+//    Ki = data[2];
+//    Kd = data[3];
+    Serial.println(Input);
   }
 }
 
-void printfunc(){
-  Serial.println();
-  if(data[0] > setpoint){
-    Serial.print(data[0]);
-    Serial.print(" is bigger than ");
-    Serial.println(setpoint);
-  }
-  else{
-    Serial.print(data[0]);
-    Serial.print(" is less than ");
-    Serial.println(setpoint);
-  }
+void readSerialData(){
+  
 }
