@@ -9,7 +9,19 @@ import sys
 import time
 from Camera import PiVideoStream
 
-curr_steering_angle = 90
+import serial
+import time
+
+#define serial variable for communication
+ser = serial.Serial('/dev/ttyACM0', 9600)
+
+time.sleep(7)   #Important: wait for serial at least 5 secs, otherwise false data
+
+####################################################################################
+# Function for transferring data from Pi to Arduino
+####################################################################################
+def transfer_data(offset):
+    ser.write(b'%f\t%f\t%f\t%f\t' % (float(offset), 10, 20, 30))
 
 def detecting_contour(img, frame):
     contours_blk, hierarchy_blk = cv2.findContours(img.copy(),cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
@@ -210,7 +222,7 @@ def calculate_offset(frame, line_segments):
 def steer(frame, lane_lines, curr_steering_angle):
         if len(lane_lines) == 0:
             logging.error('No lane lines detected, nothing to do.')
-            return frame
+            return frame , curr_steering_angle
 
         new_steering_angle = compute_steering_angle(frame, lane_lines)
         curr_steering_angle = stabilize_steering_angle(curr_steering_angle, new_steering_angle, len(lane_lines))
@@ -218,7 +230,7 @@ def steer(frame, lane_lines, curr_steering_angle):
         curr_heading_image = display_heading_line(frame, curr_steering_angle)
         #cv2.imshow("heading", curr_heading_image)
 
-        return curr_heading_image
+        return curr_heading_image, curr_steering_angle
 
 def compute_steering_angle(frame, lane_lines):
     """ Find the steering angle based on lane line coordinate
@@ -323,6 +335,7 @@ def test_photo(file):
 
 
 def video_live():
+    curr_angle = 90
     image = PiVideoStream((320, 240), 32).start()
 
     # allow the camera to warmup
@@ -337,8 +350,9 @@ def video_live():
         # insert FPS
         # cv2.putText(combo_image,'FPS: {0:.2f}'.format(frame_rate_calc),(30,50),cv2.FONT_HERSHEY_SIMPLEX,1,(255,255,0),2,cv2.LINE_AA)
 
-        final_image = steer(lane_lines_image, averaged_lines, curr_steering_angle)
-
+        final_image, curr_angle = steer(lane_lines_image, averaged_lines, curr_angle)
+        print(curr_angle)
+        transfer_data(curr_angle)
         # show the frame
         # cv2.imshow("hsv", hsv)
         # cv2.imshow("canny result", canny_image)

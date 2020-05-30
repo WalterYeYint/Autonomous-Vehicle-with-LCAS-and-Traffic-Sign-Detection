@@ -16,8 +16,8 @@
 
 
 String r;
-int data[3];
-int setpoint = 0;
+float data[4];
+float setpoint = 0;
 float Input = 90;
 float Kp = 0;        //2.5 = default, 6.5 = perfect, 26.5 = shakin                                              //Initial Proportional Gain
 float Ki = 0;                                                      //Initial Integral Gain
@@ -27,6 +27,11 @@ void setup(){
   delay(5000);
 }
 void loop(){
+  Input = readSerialData();
+}
+
+float readSerialData(){
+  float Input = 0;
   if(Serial.available()){
     for(int i=0; i<4; i++){
       r = (Serial.readStringUntil('\t'));  //conveting the value of chars to integer
@@ -40,8 +45,5 @@ void loop(){
 //    Kd = data[3];
     Serial.println(Input);
   }
-}
-
-void readSerialData(){
-  
+  return Input;
 }

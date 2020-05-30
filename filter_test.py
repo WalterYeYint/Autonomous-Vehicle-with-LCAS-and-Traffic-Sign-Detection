@@ -8,9 +8,9 @@ import serial
 import time
 
 #define serial variable for communication
-ser = serial.Serial('/dev/ttyACM0', 9600)
+# ser = serial.Serial('/dev/ttyACM0', 9600)
 
-time.sleep(7)
+# time.sleep(7)   #Important: wait for serial at least 5 secs, otherwise false data
 
 ####################################################################################
 # Function for transferring data from Pi to Arduino
@@ -42,7 +42,7 @@ def detecting_edges(img):
     # upper_white = np.array([110, 50, 255])
     # mask = cv2.inRange(hsv, lower_white, upper_white)
 
-    lower_red = np.array([150, 100, 100])
+    lower_red = np.array([150, 100, 105])
     upper_red = np.array([180, 255, 255])
     mask = cv2.inRange(hsv, lower_red, upper_red)
 
@@ -217,7 +217,7 @@ def calculate_offset(frame, line_segments):
 def steer(frame, lane_lines, curr_steering_angle):
         if len(lane_lines) == 0:
             logging.error('No lane lines detected, nothing to do.')
-            return frame
+            return frame, curr_steering_angle
 
         new_steering_angle = compute_steering_angle(frame, lane_lines)
         curr_steering_angle = stabilize_steering_angle(curr_steering_angle, new_steering_angle, len(lane_lines))
@@ -343,7 +343,7 @@ def test_video(video_file):
             # averaged_lines = average_slope_intercept_middle_line(frame, lines)
             final_image, curr_angle = steer(lane_lines_image, averaged_lines, curr_angle)
             print(curr_angle)
-            transfer_data(curr_angle)
+            # transfer_data(curr_angle)
             # cv2.imshow("result", canny_image)
             cv2.imshow("result2", final_image)
             if cv2.waitKey(10) & 0xFF == ord('q'):
