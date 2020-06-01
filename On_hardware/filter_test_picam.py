@@ -13,9 +13,9 @@ import serial
 import time
 
 #define serial variable for communication
-ser = serial.Serial('/dev/ttyACM0', 9600)
+# ser = serial.Serial('/dev/ttyACM0', 9600)
 
-time.sleep(7)   #Important: wait for serial at least 5 secs, otherwise false data
+# time.sleep(7)   #Important: wait for serial at least 5 secs, otherwise false data
 
 ####################################################################################
 # Function for transferring data from Pi to Arduino
@@ -47,9 +47,9 @@ def detecting_edges(img):
     # upper_white = np.array([110, 200, 255])
     # mask = cv2.inRange(hsv, lower_white, upper_white)
 
-    lower_red = np.array([150, 100, 105])
-    upper_red = np.array([180, 255, 255])
-    mask = cv2.inRange(hsv, lower_red, upper_red)
+    # lower_red = np.array([150, 50, 80])
+    # upper_red = np.array([180, 255, 255])
+    # mask = cv2.inRange(hsv, lower_red, upper_red)
 
     # if you need full red color range uncomment the following 4 line (not helpful though)
     # lower_red_2 = np.array([0, 100, 0])
@@ -57,9 +57,9 @@ def detecting_edges(img):
     # mask_2 = cv2.inRange(hsv, lower_red_2, upper_red_2)
     # mask = cv2.bitwise_or(mask, mask_2)
 
-    # lower_blue = np.array([60, 40, 40])
-    # upper_blue = np.array([150, 255, 255])
-    # mask = cv2.inRange(hsv, lower_blue, upper_blue)
+    lower_blue = np.array([80, 40, 0])
+    upper_blue = np.array([140, 255, 140])
+    mask = cv2.inRange(hsv, lower_blue, upper_blue)
 
     # #Convert to grayscale then dilate and erode
     kernel = np.ones((3,3), np.uint8)
@@ -173,7 +173,7 @@ def average_slope_intercept_middle_line(frame, line_segments):
         for x1, y1, x2, y2 in line_segment:
             if x1 == x2:
                 #logging.info('skipping vertical line segment (slope=inf): %s' % line_segment)
-                continue
+                continue  
             fit = np.polyfit((x1, x2), (y1, y2), 1)
             slope = fit[0]
             intercept = fit[1]
@@ -194,6 +194,9 @@ def make_coordinates(image, line_parameters):
         intercept = 0.00
     else:
         slope, intercept = line_parameters
+    if slope == 0:
+        slope = 0.0001
+        intercept = 0.00
     y1 = height  # bottom of the frame
     y2 = int(y1 * 1 / 2)  # make points from middle of the frame down
 
@@ -221,7 +224,7 @@ def calculate_offset(frame, line_segments):
 
 def steer(frame, lane_lines, curr_steering_angle):
         if len(lane_lines) == 0:
-            logging.error('No lane lines detected, nothing to do.')
+            # logging.error('No lane lines detected, nothing to do.')
             return frame , curr_steering_angle
 
         new_steering_angle = compute_steering_angle(frame, lane_lines)
@@ -343,20 +346,20 @@ def video_live():
     # capture frames from the camera
     while True:
         frame = image.read()
-        # hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
-        # canny_image = detecting_edges(frame)
+        hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
+        canny_image = detecting_edges(frame)
         averaged_lines, lane_lines_image = detect_lane(frame)
 
         # insert FPS
         # cv2.putText(combo_image,'FPS: {0:.2f}'.format(frame_rate_calc),(30,50),cv2.FONT_HERSHEY_SIMPLEX,1,(255,255,0),2,cv2.LINE_AA)
 
-        final_image, curr_angle = steer(lane_lines_image, averaged_lines, curr_angle)
-        print(curr_angle)
-        transfer_data(curr_angle)
+        # final_image, curr_angle = steer(lane_lines_image, averaged_lines, curr_angle)
+        # print(curr_angle)
+        # transfer_data(curr_angle)
         # show the frame
-        # cv2.imshow("hsv", hsv)
-        # cv2.imshow("canny result", canny_image)
-        cv2.imshow("result2", final_image)
+        cv2.imshow("hsv", hsv)
+        cv2.imshow("canny result", canny_image)
+        # cv2.imshow("result2", final_image)
         
         # if the `q` key was pressed, break from the loop
         if cv2.waitKey(10) & 0xFF == ord('q'):

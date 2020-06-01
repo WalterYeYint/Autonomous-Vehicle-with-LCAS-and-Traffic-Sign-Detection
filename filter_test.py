@@ -42,9 +42,9 @@ def detecting_edges(img):
     # upper_white = np.array([110, 50, 255])
     # mask = cv2.inRange(hsv, lower_white, upper_white)
 
-    lower_red = np.array([150, 100, 105])
-    upper_red = np.array([180, 255, 255])
-    mask = cv2.inRange(hsv, lower_red, upper_red)
+    # lower_red = np.array([150, 50, 80])
+    # upper_red = np.array([180, 255, 255])
+    # mask = cv2.inRange(hsv, lower_red, upper_red)
 
     # if you need full red color range uncomment the following 4 line (not helpful though)
     # lower_red_2 = np.array([0, 100, 0])
@@ -52,9 +52,9 @@ def detecting_edges(img):
     # mask_2 = cv2.inRange(hsv, lower_red_2, upper_red_2)
     # mask = cv2.bitwise_or(mask, mask_2)
 
-    # lower_blue = np.array([60, 40, 40])
-    # upper_blue = np.array([150, 255, 255])
-    # mask = cv2.inRange(hsv, lower_blue, upper_blue)
+    lower_blue = np.array([100, 120, 80])
+    upper_blue = np.array([120, 255, 255])
+    mask = cv2.inRange(hsv, lower_blue, upper_blue)
 
     # #Convert to grayscale then dilate and erode
     kernel = np.ones((3,3), np.uint8)
@@ -216,7 +216,7 @@ def calculate_offset(frame, line_segments):
 
 def steer(frame, lane_lines, curr_steering_angle):
         if len(lane_lines) == 0:
-            logging.error('No lane lines detected, nothing to do.')
+            # logging.error('No lane lines detected, nothing to do.')
             return frame, curr_steering_angle
 
         new_steering_angle = compute_steering_angle(frame, lane_lines)
@@ -334,8 +334,8 @@ def test_video(video_file):
         if ret == True:
             # contour_image = detecting_contour(frame)
             averaged_lines, lane_lines_image = detect_lane(frame)
-            # canny_image = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
-            # canny_image = detecting_edges(frame)
+            hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
+            canny_image = detecting_edges(frame)
             # cropped_image = region_of_interest(canny_image)
             # detecting_contour(cropped_image, frame)
             
@@ -344,8 +344,9 @@ def test_video(video_file):
             final_image, curr_angle = steer(lane_lines_image, averaged_lines, curr_angle)
             print(curr_angle)
             # transfer_data(curr_angle)
-            # cv2.imshow("result", canny_image)
-            cv2.imshow("result2", final_image)
+            cv2.imshow("result", hsv)
+            cv2.imshow("result3", canny_image)
+            # cv2.imshow("result2", final_image)
             if cv2.waitKey(10) & 0xFF == ord('q'):
                 break
         else:
@@ -379,6 +380,7 @@ def test_photo(photo_file):
 
 #test_photo('test_lane.jpeg')
 # test_photo('white_line.jpg')
+# test_photo('black_white_line.jpg')
 # test_video('white_line.mp4')
 # test_video('white_line_2.mp4')
 # test_video('black_line.mp4')
@@ -393,4 +395,7 @@ def test_photo(photo_file):
 # test_photo('red_line_IRcam3.jpg')
 # test_photo('white_line_IRcam.jpg')
 # test_photo('white_line_IRcam2.jpg')
-test_video('red_lane.mp4')
+# test_video('red_lane.mp4')
+# test_video('red_lane_electrictape.mp4')
+# test_video('red_lane_phcam.mp4')
+test_video('blue_lane.mp4')

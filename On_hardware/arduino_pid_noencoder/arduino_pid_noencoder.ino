@@ -21,11 +21,12 @@ float data[4];
 //float Kp = 15.1;        //2.5 = default, 6.5 = perfect, 26.5 = shakin                                              //Initial Proportional Gain
 //float Ki = 0.15;                                                      //Initial Integral Gain
 //float Kd = 0.05;  //Intitial Derivative Gain
-float Kp = 3;        //2.5 = default, 6.5 = perfect, 26.5 = shakin                                              //Initial Proportional Gain
+float Kp = 2;        //2.5 = default, 6.5 = perfect, 26.5 = shakin                                              //Initial Proportional Gain
 float Ki = 0;                                                      //Initial Integral Gain
 float Kd = 0;   
 double Setpoint = 90, Input, Output;                                       
-float baseSpeed = 50;
+float baseSpeed = 70;
+float cm = 90;
 
 PID myPID(&Input, &Output, &Setpoint, Kp, Ki, Kd, DIRECT);           //Initialize PID object, which is in the class PID.
 
@@ -46,6 +47,7 @@ void loop()
 //    myPID.SetTunings(Kp, Ki, Kd); 
   Input = readSerialData();
   myPID.Compute();  
+//  Serial.println(Input);
   Serial.println(Output);
   motorMove(Output);     
 //  Serial.print(" "); 
@@ -75,10 +77,10 @@ void motorMove(int velocity){
   if (velocity > 255) velocity = 255;
   else if (velocity < -255) velocity = -255;
   
-  digitalWrite(L298N_A, LOW);
-  digitalWrite(L298N_B, HIGH);
-  digitalWrite(L298N_C, LOW);
-  digitalWrite(L298N_D, HIGH);
+  digitalWrite(L298N_A, HIGH);
+  digitalWrite(L298N_B, LOW);
+  digitalWrite(L298N_C, HIGH);
+  digitalWrite(L298N_D, LOW);
   if(velocity >= 0){
     analogWrite(L298N_EN, baseSpeed + abs(velocity));
     analogWrite(L298N_EN_B, baseSpeed);
@@ -90,7 +92,6 @@ void motorMove(int velocity){
 }     
 
 float readSerialData(){
-  float Input = 0;
   if(Serial.available()){
     for(int i=0; i<4; i++){
       r = (Serial.readStringUntil('\t'));  //conveting the value of chars to integer
@@ -98,11 +99,11 @@ float readSerialData(){
 //      Serial.print(data[i]);
 //      Serial.print('\t');
     }
-    Input = data[0];
+    cm = data[0];
 //    Kp = data[1];
 //    Ki = data[2];
 //    Kd = data[3];
-    Serial.println(Input);
+//    Serial.println(Input);
   }
-  return Input;
+  return cm;
 }
