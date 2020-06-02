@@ -17,10 +17,8 @@
 
 String r;
 float data[4];
+//pretty good value => Kp=2,Ki=0,Kd=0.3
 
-//float Kp = 15.1;        //2.5 = default, 6.5 = perfect, 26.5 = shakin                                              //Initial Proportional Gain
-//float Ki = 0.15;                                                      //Initial Integral Gain
-//float Kd = 0.05;  //Intitial Derivative Gain
 float Kp = 2;        //2.5 = default, 6.5 = perfect, 26.5 = shakin                                              //Initial Proportional Gain
 float Ki = 0;                                                      //Initial Integral Gain
 float Kd = 0;   
@@ -38,26 +36,27 @@ void setup() {
   motorInitialize();
   Input = 90; 
   myPID.SetMode(AUTOMATIC);                                          //Set PID object myPID to AUTOMATIC 
-  myPID.SetOutputLimits(-200, 200);                                     //Set Output limits to -80 and 80 degrees. 
+  myPID.SetOutputLimits(-255 + baseSpeed, 255 - baseSpeed);                                     //Set Output limits to -80 and 80 degrees. 
 }
 
 void loop()
 {
-  
-//    myPID.SetTunings(Kp, Ki, Kd); 
-  Input = readSerialData();
-  myPID.Compute();  
-//  Serial.println(Input);
-  Serial.println(Output);
-  motorMove(Output);     
-//  Serial.print(" "); 
-//  Serial.println(Output);
-//  Serial.println("");
-//    Serial.print(Kp);
-//    Serial.print(" ");
-//    Serial.print(Ki);
-//    Serial.print(" ");
-//    Serial.println(Kd);
+  if(Serial.available()){
+    //    myPID.SetTunings(Kp, Ki, Kd); 
+    Input = readSerialData();
+    myPID.Compute();  
+  //  Serial.println(Input);
+  //  Serial.println(Output);
+    motorMove(Output);     
+  //  Serial.print(" "); 
+  //  Serial.println(Output);
+  //  Serial.println("");
+  //    Serial.print(Kp);
+  //    Serial.print(" ");
+  //    Serial.print(Ki);
+  //    Serial.print(" ");
+  //    Serial.println(Kd);
+  }
 }
 
 void motorInitialize(){
@@ -82,28 +81,26 @@ void motorMove(int velocity){
   digitalWrite(L298N_C, HIGH);
   digitalWrite(L298N_D, LOW);
   if(velocity >= 0){
-    analogWrite(L298N_EN, baseSpeed + abs(velocity));
-    analogWrite(L298N_EN_B, baseSpeed);
-  }
-  else{
     analogWrite(L298N_EN, baseSpeed);
     analogWrite(L298N_EN_B, baseSpeed + abs(velocity));
+  }
+  else{
+    analogWrite(L298N_EN, baseSpeed + abs(velocity));
+    analogWrite(L298N_EN_B, baseSpeed);
   }
 }     
 
 float readSerialData(){
-  if(Serial.available()){
-    for(int i=0; i<4; i++){
-      r = (Serial.readStringUntil('\t'));  //conveting the value of chars to integer
-      data[i] = r.toFloat();
+  for(int i=0; i<4; i++){
+    r = (Serial.readStringUntil('\t'));  //conveting the value of chars to integer
+    data[i] = r.toFloat();
 //      Serial.print(data[i]);
 //      Serial.print('\t');
-    }
-    cm = data[0];
+  }
+  cm = data[0];
 //    Kp = data[1];
 //    Ki = data[2];
 //    Kd = data[3];
 //    Serial.println(Input);
-  }
   return cm;
 }
