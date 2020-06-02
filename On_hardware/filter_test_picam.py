@@ -194,7 +194,7 @@ def make_coordinates(image, line_parameters):
         intercept = 0.00
     else:
         slope, intercept = line_parameters
-    if slope == 0:
+    if slope == 0:      #This condition added to remove overflow error(divide by zero)
         slope = 0.0001
         intercept = 0.00
     y1 = height  # bottom of the frame
