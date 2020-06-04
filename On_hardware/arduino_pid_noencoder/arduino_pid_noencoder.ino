@@ -18,10 +18,11 @@
 String r;
 float data[4];
 //pretty good value => Kp=2,Ki=0,Kd=0.3
+//better value => Kp=2,Ki=0,Kd=0.03/0.04
 
-float Kp = 2;        //2.5 = default, 6.5 = perfect, 26.5 = shakin                                              //Initial Proportional Gain
+float Kp = 3.1;        //2.5 = default, 6.5 = perfect, 26.5 = shakin                                              //Initial Proportional Gain
 float Ki = 0;                                                      //Initial Integral Gain
-float Kd = 0;   
+float Kd = 0.07;   
 double Setpoint = 90, Input, Output;                                       
 float baseSpeed = 70;
 float cm = 90;
