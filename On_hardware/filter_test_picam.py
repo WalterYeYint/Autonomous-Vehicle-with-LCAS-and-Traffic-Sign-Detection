@@ -13,9 +13,9 @@ import serial
 import time
 
 #define serial variable for communication
-# ser = serial.Serial('/dev/ttyACM0', 9600)
+ser = serial.Serial('/dev/ttyACM0', 9600)
 
-# time.sleep(7)   #Important: wait for serial at least 5 secs, otherwise false data
+time.sleep(7)   #Important: wait for serial at least 5 secs, otherwise false data
 
 ####################################################################################
 # Function for transferring data from Pi to Arduino
@@ -265,7 +265,7 @@ def compute_steering_angle(frame, lane_lines):
     return steering_angle
 
 
-def stabilize_steering_angle(curr_steering_angle, new_steering_angle, num_of_lane_lines, max_angle_deviation_two_lines=5, max_angle_deviation_one_lane=1):
+def stabilize_steering_angle(curr_steering_angle, new_steering_angle, num_of_lane_lines, max_angle_deviation_two_lines=5, max_angle_deviation_one_lane=5):
     """
     Using last steering angle to stabilize the steering angle
     This can be improved to use last N angles, etc
@@ -355,11 +355,11 @@ def video_live():
 
         final_image, curr_angle = steer(lane_lines_image, averaged_lines, curr_angle)
         print(curr_angle)
-        # transfer_data(curr_angle)
+        transfer_data(curr_angle)
         # show the frame
         # cv2.imshow("hsv", hsv)
-        cv2.imshow("canny result", canny_image)
-        cv2.imshow("result2", final_image)
+        # cv2.imshow("canny result", canny_image)
+        # cv2.imshow("result2", final_image)
         
         # if the `q` key was pressed, break from the loop
         if cv2.waitKey(10) & 0xFF == ord('q'):
