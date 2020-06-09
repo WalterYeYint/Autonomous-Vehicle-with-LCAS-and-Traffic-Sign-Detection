@@ -2,7 +2,6 @@
 # python client.py --server-ip SERVER_IP
 
 # import the necessary packages
-from imutils.video import VideoStream
 from Camera import PiVideoStream
 import imagezmq
 import argparse
