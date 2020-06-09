@@ -339,7 +339,8 @@ def test_photo(file):
 
 def video_live():
     curr_angle = 90
-    image = PiVideoStream((320, 240), 32).start()
+    image = PiVideoStream((320, 240), 32).start_camera_thread()
+    image.start_second_thread()
 
     # allow the camera to warmup
     time.sleep(0.1)
@@ -347,7 +348,7 @@ def video_live():
     while True:
         frame = image.read()
         # hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
-        canny_image = detecting_edges(frame)
+        # canny_image = detecting_edges(frame)
         averaged_lines, lane_lines_image = detect_lane(frame)
 
         # insert FPS

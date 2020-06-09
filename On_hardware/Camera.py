@@ -3,6 +3,12 @@ from picamera import PiCamera
 from threading import Thread
 import cv2
 
+import imagezmq
+import socket
+
+# Initializing ImageSender Object with server's ip address, and get hostname of pi
+sender = imagezmq.ImageSender(connect_to="tcp://{}:5555".format('192.168.1.114'))
+rpiName = socket.gethostname()
 
 class PiVideoStream:
     def __init__(self, resolution=(640, 480), framerate=32):
@@ -25,9 +31,9 @@ class PiVideoStream:
         # self.w       = 0
 
 
-    def start(self):
+    def start_camera_thread(self):
         # Start the thread to read frames from the video stream
-        Thread(target=self.update, args=()).start()
+        Thread(target=self.update, args=(), daemon = True).start()
 
 
         # Wait until there is  frame loaded
@@ -35,6 +41,22 @@ class PiVideoStream:
         while self.frame is None: sleep(0.01)
 
         return self
+    
+    def start_second_thread(self):
+        # Start the thread to read frames from the video stream
+        Thread(target=self.run_sender, args=(), daemon = True).start()
+
+
+        # Wait until there is  frame loaded
+        from time import sleep
+        while self.frame is None: sleep(0.01)
+
+        return self
+    
+    def run_sender(self):
+        while True:
+            sender.send_image(rpiName, self.frame)
+
 
     def update(self):
         # rotationMatrix = None
