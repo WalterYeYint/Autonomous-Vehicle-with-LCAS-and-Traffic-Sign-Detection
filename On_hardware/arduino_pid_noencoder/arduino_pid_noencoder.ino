@@ -20,9 +20,9 @@ float data[4];
 //pretty good value => Kp=0.62,Ki=0,Kd=0.37
 //better value => Kp=0.47,Ki=0,Kd=0.34
 
-float Kp = 0;        //2.5 = default, 6.5 = perfect, 26.5 = shakin                                              //Initial Proportional Gain
+float Kp = 0.47;        //2.5 = default, 6.5 = perfect, 26.5 = shakin                                              //Initial Proportional Gain
 float Ki = 0;                                                      //Initial Integral Gain
-float Kd = 0;   
+float Kd = 0.34;   
 
 float pinP = 0;    //pin Analog 0 for the input of the potentiometer
 float pinD = 1; 
@@ -47,11 +47,11 @@ void setup() {
 
 void loop()
 {
-  Kp = analogRead(pinP);
-  Kp = Ki/100;
-  Kd = analogRead(pinD);
-  Kd = Kd/100;
-  myPID.SetTunings(Kp, Ki, Kd);
+//  Kp = analogRead(pinP);
+//  Kp = Ki/100;
+//  Kd = analogRead(pinD);
+//  Kd = Kd/100;
+//  myPID.SetTunings(Kp, Ki, Kd);
   if(Serial.available()){
      
     Input = readSerialData();
