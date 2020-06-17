@@ -221,7 +221,7 @@ def steer(frame, lane_lines, curr_steering_angle):
 
         new_steering_angle = compute_steering_angle(frame, lane_lines)
         curr_steering_angle = stabilize_steering_angle(curr_steering_angle, new_steering_angle, len(lane_lines))
-        cv2.putText(frame,'STA: {0:.2f}'.format(curr_steering_angle),(30,50),cv2.FONT_HERSHEY_SIMPLEX,1,(255,255,0),2,cv2.LINE_AA)
+        cv2.putText(frame,'Steering Angle: {0:.2f}'.format(curr_steering_angle),(30,50),cv2.FONT_HERSHEY_SIMPLEX,1,(255,255,0),2,cv2.LINE_AA)
         curr_heading_image = display_heading_line(frame, curr_steering_angle)
         # cv2.putText(frame,'STA: {0:.2f}'.format(new_steering_angle),(30,50),cv2.FONT_HERSHEY_SIMPLEX,1,(255,255,0),2,cv2.LINE_AA)
         # curr_heading_image = display_heading_line(frame, new_steering_angle)
@@ -356,9 +356,11 @@ def test_video(video_file):
 
 
 def test_photo(photo_file):
+    curr_angle = 90
     #image = cv2.imread('test_lane.jpeg')
     image = cv2.imread(photo_file)
-    image_re = cv2.resize(image, (960, 721))
+    # image_re = cv2.resize(image, (960, 721))
+    image_re = cv2.resize(image, (320, 240))
     lane_image = np.copy(image_re)
 
     # lane_lines_image = detect_lane(lane_image)
@@ -370,11 +372,22 @@ def test_photo(photo_file):
     #For testing bit by bit
     hsv = cv2.cvtColor(lane_image, cv2.COLOR_BGR2HSV)
     canny_image = detecting_edges(lane_image)
-    cropped_image = region_of_interest(canny_image)
+    
+    # cropped_image = region_of_interest(canny_image)
     # detecting_contour(cropped_image, lane_image)
     #canny_image = detecting_edges_grayscale(lane_image)
-    cv2.imshow("hsv", hsv)
-    cv2.imshow("original", canny_image)
+    
+    averaged_lines, lane_lines_image = detect_lane(lane_image)
+    final_image, curr_angle = steer(lane_lines_image, averaged_lines, curr_angle)
+
+    # cv2.imshow("Original image", lane_image)
+    # cv2.imshow("hsv image", hsv)
+    # cv2.imshow("Canny image", canny_image)
+    # cv2.imshow("final image", final_image)
+
+    plt.imshow(cv2.cvtColor(image, cv2.COLOR_BGR2RGB))
+    plt.show()
+
     cv2.waitKey(0)
 
 
@@ -398,4 +411,5 @@ def test_photo(photo_file):
 # test_video('red_lane.mp4')
 # test_video('red_lane_electrictape.mp4')
 # test_video('red_lane_phcam.mp4')
-test_video('blue_lane.mp4')
+# test_video('blue_lane.mp4')
+test_photo('blue_lane.jpg')

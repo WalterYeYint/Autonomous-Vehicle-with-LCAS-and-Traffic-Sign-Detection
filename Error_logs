@@ -1,0 +1,3 @@
+-Tensorflow stops recognizing the GPU 
+(running TrafficSign_Test.py shows index error at 'tf.config.experimental.set_memory_growth(physical_devices[0], True)')
+Solution: restart the PC
