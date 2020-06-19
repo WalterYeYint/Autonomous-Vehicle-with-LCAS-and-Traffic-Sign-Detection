@@ -3,12 +3,12 @@ from picamera import PiCamera
 from threading import Thread
 import cv2
 
-# import imagezmq
-# import socket
+import imagezmq
+import socket
 
-# # Initializing ImageSender Object with server's ip address, and get hostname of pi
-# sender = imagezmq.ImageSender(connect_to="tcp://{}:5555".format('192.168.1.114'))
-# rpiName = socket.gethostname()
+# Initializing ImageSender Object with server's ip address, and get hostname of pi
+sender = imagezmq.ImageSender(connect_to="tcp://{}:5555".format('192.168.1.114'))
+rpiName = socket.gethostname()
 
 class PiVideoStream:
     def __init__(self, resolution=(640, 480), framerate=32):

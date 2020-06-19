@@ -11,11 +11,18 @@ from Camera import PiVideoStream
 
 import serial
 import time
+import socket
 
-#define serial variable for communication
+# define serial variable for communication
 # ser = serial.Serial('/dev/ttyACM0', 9600)
-
 # time.sleep(7)   #Important: wait for serial at least 5 secs, otherwise false data
+
+# Initialize UDP
+UDP_IP = "192.168.1.114"
+UDP_PORT = 5006
+sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM) # (Internet, UDP)
+sock.bind(('', UDP_PORT))
+
 
 ####################################################################################
 # Function for transferring data from Pi to Arduino
@@ -340,7 +347,7 @@ def test_photo(file):
 def video_live():
     curr_angle = 90
     image = PiVideoStream((320, 240), 32).start_camera_thread()
-    # image.start_second_thread()
+    image.start_second_thread()
 
     # allow the camera to warmup
     time.sleep(0.1)
@@ -355,12 +362,14 @@ def video_live():
         # cv2.putText(combo_image,'FPS: {0:.2f}'.format(frame_rate_calc),(30,50),cv2.FONT_HERSHEY_SIMPLEX,1,(255,255,0),2,cv2.LINE_AA)
 
         final_image, curr_angle = steer(lane_lines_image, averaged_lines, curr_angle)
-        print(curr_angle)
+        # print(curr_angle)
+        data, addr = sock.recvfrom(1024) # buffer size is 1024 bytes
+        print("received message: %s" % data)
         # transfer_data(curr_angle)
         # show the frame
         # cv2.imshow("hsv", hsv)
         # cv2.imshow("canny result", canny_image)
-        cv2.imshow("result2", final_image)
+        # cv2.imshow("result2", final_image)
         
         # if the `q` key was pressed, break from the loop
         if cv2.waitKey(10) & 0xFF == ord('q'):
