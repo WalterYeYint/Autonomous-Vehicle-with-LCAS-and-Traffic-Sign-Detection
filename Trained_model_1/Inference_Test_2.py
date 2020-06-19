@@ -107,6 +107,28 @@ def test_video(video_file):
                     category_index,
                     use_normalized_coordinates=True,
                     line_thickness=8)
+                
+                largest_index = 1
+                largest_score = 0
+                min_score_thresh = 0.8
+
+                for i in range(boxes.shape[0]):
+                    if scores[0][i] > largest_score:
+                        largest_index = i
+                        # boxes[i] is the box which will be drawn
+                if scores[0][largest_index] >= min_score_thresh:
+                    print ("This class is gonna get used", classes[0][largest_index], scores[0][largest_index])
+
+
+
+                # boxes = np.squeeze(boxes)
+                # max_boxes_to_draw = boxes.shape[0]
+                # scores = np.squeeze(scores)
+                # min_score_thresh=.7
+                # for i in range(min(max_boxes_to_draw, boxes.shape[0])):
+                    # if scores is None or scores[i] > min_score_thresh:
+                #         # boxes[i] is the box which will be drawn
+                #         print ("This box is gonna get used", boxes[i], scores[i])
 
                 cv2.imshow('object detection', cv2.resize(image_np, (800,600)))
                 if cv2.waitKey(25) & 0xFF == ord('q'):
@@ -116,4 +138,64 @@ def test_video(video_file):
             cv2.destroyAllWindows()
 
 
-test_video('test_video.mp4')
+def test_photo(photo_file):
+    with detection_graph.as_default():
+        with tf.compat.v1.Session(graph=detection_graph) as sess:
+            image_np = cv2.imread(photo_file)
+            # Expand dimensions since the model expects images to have shape: [1, None, None, 3]
+            image_np_expanded = np.expand_dims(image_np, axis=0)
+            image_tensor = detection_graph.get_tensor_by_name('image_tensor:0')
+            # Each box represents a part of the image where a particular object was detected.
+            boxes = detection_graph.get_tensor_by_name('detection_boxes:0')
+            # Each score represent how level of confidence for each of the objects.
+            # Score is shown on the result image, together with the class label.
+            scores = detection_graph.get_tensor_by_name('detection_scores:0')
+            classes = detection_graph.get_tensor_by_name('detection_classes:0')
+            num_detections = detection_graph.get_tensor_by_name('num_detections:0')
+            # Actual detection.
+            (boxes, scores, classes, num_detections) = sess.run(
+                [boxes, scores, classes, num_detections],
+                feed_dict={image_tensor: image_np_expanded})
+            # Visualization of the results of a detection.
+            vis_util.visualize_boxes_and_labels_on_image_array(
+                image_np,
+                np.squeeze(boxes),
+                np.squeeze(classes).astype(np.int32),
+                np.squeeze(scores),
+                category_index,
+                use_normalized_coordinates=True,
+                line_thickness=8)
+            
+            largest_index = 1
+            largest_score = 0
+
+            for i in range(boxes.shape[0]):
+                if scores[0][i] > largest_score:
+                    largest_index = i
+                    # boxes[i] is the box which will be drawn
+            
+            print ("This class is gonna get used", classes[0][largest_index], scores[0][largest_index])
+
+
+            # print(boxes.shape)
+            # print(classes.shape)
+            # print(scores)
+            # print(scores[0][3])
+
+            # boxes = np.squeeze(boxes)
+            # max_boxes_to_draw = boxes.shape[0]
+            # scores = np.squeeze(scores)
+            # min_score_thresh=.7
+            # for i in range(min(max_boxes_to_draw, boxes.shape[0])):
+                # if scores is None or scores[i] > min_score_thresh:
+            #         # boxes[i] is the box which will be drawn
+            #         print ("This box is gonna get used", boxes[i], scores[i])
+
+            cv2.imshow('object detection', cv2.resize(image_np, (800,600)))
+            cv2.waitKey(0)
+
+
+# test_video('test_video.mp4')
+# test_video('test_25_sign.mp4')
+test_video('test_stop_sign_1.mp4')
+# test_photo('test_photo_1.jpg')
