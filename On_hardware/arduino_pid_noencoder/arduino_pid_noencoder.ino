@@ -30,7 +30,9 @@ float pinD = 1;
 double Setpoint = 90, Input, Output;   
 int maxspeed = 150;                                    
 int baseSpeed = 60;
-float cm = 90;
+float cm = 90;  //Camera offset data
+float cm2 = 9;  //traffic_class for readSerialData()
+float traffic_class = 0;
 
 PID myPID(&Input, &Output, &Setpoint, Kp, Ki, Kd, DIRECT);           //Initialize PID object, which is in the class PID.
 
@@ -53,20 +55,36 @@ void loop()
 //  Kd = Kd/100;
 //  myPID.SetTunings(Kp, Ki, Kd);
   if(Serial.available()){
-     
-    Input = readSerialData();
-    myPID.Compute();  
-  //  Serial.println(Input);
-  //  Serial.println(Output);
-    motorMove(Output);     
-  //  Serial.print(" "); 
-  //  Serial.println(Output);
-  //  Serial.println("");
-  //    Serial.print(Kp);
-  //    Serial.print(" ");
-  //    Serial.print(Ki);
-  //    Serial.print(" ");
-  //    Serial.println(Kd);
+    for(int i=0; i<4; i++){
+      r = (Serial.readStringUntil('\t'));  //conveting the value of chars to integer
+      data[i] = r.toFloat();
+  //      Serial.print(data[i]);
+  //      Serial.print('\t');
+    }
+    Input = data[0];
+    traffic_class = data[1];
+  //    Kp = data[1];
+  //    Ki = data[2];
+  //    Kd = data[3];
+  //    Serial.println(Input);
+    
+    if(traffic_class == 6){
+      motorStop();
+    }
+    else{
+      myPID.Compute();  
+    //  Serial.println(Input);
+    //  Serial.println(Output);
+      motorMove(Output);     
+    //  Serial.print(" "); 
+    //  Serial.println(Output);
+    //  Serial.println("");
+    //    Serial.print(Kp);
+    //    Serial.print(" ");
+    //    Serial.print(Ki);
+    //    Serial.print(" ");
+    //    Serial.println(Kd);
+    }
   }
 }
 
@@ -99,17 +117,11 @@ void motorMove(int velocity){
   analogWrite(L298N_EN_B, right_speed);
 }     
 
-float readSerialData(){
-  for(int i=0; i<4; i++){
-    r = (Serial.readStringUntil('\t'));  //conveting the value of chars to integer
-    data[i] = r.toFloat();
-//      Serial.print(data[i]);
-//      Serial.print('\t');
-  }
-  cm = data[0];
-//    Kp = data[1];
-//    Ki = data[2];
-//    Kd = data[3];
-//    Serial.println(Input);
-  return cm;
+void motorStop(){
+  digitalWrite(L298N_A, 0);
+  digitalWrite(L298N_B, 0);
+  analogWrite(L298N_EN, 0); 
+  digitalWrite(L298N_C, 0);
+  digitalWrite(L298N_D, 0);
+  analogWrite(L298N_EN_B, 0);  
 }

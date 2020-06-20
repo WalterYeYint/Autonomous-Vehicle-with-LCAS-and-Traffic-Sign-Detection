@@ -13,8 +13,8 @@ import serial
 import time
 
 # define serial variable for communication
-# ser = serial.Serial('/dev/ttyACM0', 9600)
-# time.sleep(7)   #Important: wait for serial at least 5 secs, otherwise false data
+ser = serial.Serial('/dev/ttyACM0', 9600)
+time.sleep(7)   #Important: wait for serial at least 5 secs, otherwise false data
 
 
 ####################################################################################
@@ -339,6 +339,7 @@ def test_photo(file):
 
 def video_live():
     curr_angle = 90
+    data = 9
     image = PiVideoStream((320, 240), 32).start_camera_thread()
     image.start_second_thread()
     image.start_third_thread()
@@ -358,9 +359,9 @@ def video_live():
         final_image, curr_angle = steer(lane_lines_image, averaged_lines, curr_angle)
         # print(curr_angle)
         data = float(image.get_data())
-        if data==6 or data==2:
-            print("received message: %f" % data)
-        # transfer_data(curr_angle, data)
+        # if data==6 or data==2:
+        #     # print("received message: %f" % data)
+        transfer_data(curr_angle, data)
         # show the frame
         # cv2.imshow("hsv", hsv)
         # cv2.imshow("canny result", canny_image)
