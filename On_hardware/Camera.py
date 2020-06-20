@@ -4,7 +4,15 @@ from threading import Thread
 import cv2
 
 import imagezmq
+# import socket
+
+
+# Initialize UDP
 import socket
+UDP_IP = "192.168.1.114"
+UDP_PORT = 5006
+sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM) # (Internet, UDP)
+sock.bind(('', UDP_PORT))
 
 # Initializing ImageSender Object with server's ip address, and get hostname of pi
 sender = imagezmq.ImageSender(connect_to="tcp://{}:5555".format('192.168.1.114'))
@@ -29,6 +37,10 @@ class PiVideoStream:
         self.frameID = 0
         # self.h       = 0
         # self.w       = 0
+
+        # traffic_class data value
+        self.data = 9
+        self.addr = 0
 
 
     def start_camera_thread(self):
@@ -56,6 +68,18 @@ class PiVideoStream:
     def run_sender(self):
         while True:
             sender.send_image(rpiName, self.frame)
+    
+    def start_third_thread(self):
+        # Start the thread to read frames from the video stream
+        Thread(target=self.sock_recv, args=(), daemon = True).start()
+        return self
+    
+    def sock_recv(self):
+        while True:
+            self.data, self.addr = sock.recvfrom(1024) # buffer size is 1024 bytes
+    
+    def get_data(self):
+        return self.data
 
 
     def update(self):

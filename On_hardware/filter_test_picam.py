@@ -11,24 +11,17 @@ from Camera import PiVideoStream
 
 import serial
 import time
-import socket
 
 # define serial variable for communication
 # ser = serial.Serial('/dev/ttyACM0', 9600)
 # time.sleep(7)   #Important: wait for serial at least 5 secs, otherwise false data
 
-# Initialize UDP
-UDP_IP = "192.168.1.114"
-UDP_PORT = 5006
-sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM) # (Internet, UDP)
-sock.bind(('', UDP_PORT))
-
 
 ####################################################################################
 # Function for transferring data from Pi to Arduino
 ####################################################################################
-def transfer_data(offset):
-    ser.write(b'%f\t%f\t%f\t%f\t' % (float(offset), 10, 10, 10))
+def transfer_data(offset, traffic_class):
+    ser.write(b'%f\t%f\t%f\t%f\t' % (float(offset), float(traffic_class), 10, 10))
 
 def detecting_contour(img, frame):
     contours_blk, hierarchy_blk = cv2.findContours(img.copy(),cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
@@ -348,6 +341,7 @@ def video_live():
     curr_angle = 90
     image = PiVideoStream((320, 240), 32).start_camera_thread()
     image.start_second_thread()
+    image.start_third_thread()
 
     # allow the camera to warmup
     time.sleep(0.1)
@@ -363,9 +357,10 @@ def video_live():
 
         final_image, curr_angle = steer(lane_lines_image, averaged_lines, curr_angle)
         # print(curr_angle)
-        data, addr = sock.recvfrom(1024) # buffer size is 1024 bytes
-        print("received message: %s" % data)
-        # transfer_data(curr_angle)
+        data = float(image.get_data())
+        if data==6 or data==2:
+            print("received message: %f" % data)
+        # transfer_data(curr_angle, data)
         # show the frame
         # cv2.imshow("hsv", hsv)
         # cv2.imshow("canny result", canny_image)
