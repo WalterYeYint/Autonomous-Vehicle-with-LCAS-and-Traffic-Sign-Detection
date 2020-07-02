@@ -32,13 +32,22 @@ tf.config.experimental.set_memory_growth(physical_devices[0], True)
 
 # In[4]:
 
-# Path to frozen detection graph. This is the actual model that is used for the object detection.
-PATH_TO_CKPT = 'frozen_inference_graph.pb'
+# # Path to frozen detection graph. This is the actual model that is used for the object detection.
+# PATH_TO_CKPT = 'frozen_inference_graph.pb'
+
+# # List of the strings that is used to add correct label for each box.
+# PATH_TO_LABELS = 'label_map.pbtxt'
+
+# NUM_CLASSES = 6
+
+PATH_TO_CKPT = 'frozen_inference_graph_204_imgs_31_btch.pb'
 
 # List of the strings that is used to add correct label for each box.
-PATH_TO_LABELS = 'label_map.pbtxt'
+PATH_TO_LABELS = 'label_map_204_imgs_3000_steps.pbtxt'
 
-NUM_CLASSES = 6
+NUM_CLASSES = 8
+
+font = cv2.FONT_HERSHEY_SIMPLEX
 
 
 # ## Load a (frozen) Tensorflow model into memory.
@@ -105,6 +114,8 @@ def test_video(video_file):
                     np.squeeze(classes).astype(np.int32),
                     np.squeeze(scores),
                     category_index,
+                    min_score_thresh=.8,
+                    max_boxes_to_draw=1,
                     use_normalized_coordinates=True,
                     line_thickness=8)
                 
@@ -117,6 +128,8 @@ def test_video(video_file):
                         largest_index = i
                         # boxes[i] is the box which will be drawn
                 if scores[0][largest_index] >= min_score_thresh:
+                    cv2.putText(image_np, str(category_index[classes[0][largest_index]]["name"]), (100, 100), font, 2, (0, 0, 255), 2, cv2.LINE_AA)
+                    cv2.putText(image_np, str(scores[0][largest_index]), (800, 100), font, 2, (0, 0, 255), 2, cv2.LINE_AA)
                     print ("This class is gonna get used", classes[0][largest_index], scores[0][largest_index])
 
 
@@ -163,6 +176,8 @@ def test_photo(photo_file):
                 np.squeeze(classes).astype(np.int32),
                 np.squeeze(scores),
                 category_index,
+                min_score_thresh=.8,
+                max_boxes_to_draw=3,
                 use_normalized_coordinates=True,
                 line_thickness=8)
             
@@ -197,5 +212,11 @@ def test_photo(photo_file):
 
 # test_video('test_video.mp4')
 # test_video('test_25_sign.mp4')
-test_video('test_stop_sign_1.mp4')
+# test_video('test_stop_sign_1.mp4')
 # test_photo('test_photo_1.jpg')
+test_video('test_traffic_all.mp4')
+# test_photo('stop_sign_real.jpg')
+# test_photo('speed_limit_25_real.jpg')
+# test_photo('green_traffic_light_real.jpg')
+# test_photo('red_traffic_light_real.jpeg')
+# test_photo('red_traffic_light_real_3.jpg')
