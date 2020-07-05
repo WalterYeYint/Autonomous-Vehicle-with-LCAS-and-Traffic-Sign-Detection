@@ -43,13 +43,22 @@ sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM) # (Internet, UDP)
 # By default we use an "SSD with Mobilenet" model here. See the [detection model zoo](https://github.com/tensorflow/models/blob/master/object_detection/g3doc/detection_model_zoo.md) for a list of other models that can be run out-of-the-box with varying speeds and accuracies.
 
 
-# Path to frozen detection graph. This is the actual model that is used for the object detection.
-PATH_TO_CKPT = 'frozen_inference_graph.pb'
+# # Path to frozen detection graph. This is the actual model that is used for the object detection.
+# PATH_TO_CKPT = 'frozen_inference_graph.pb'
+
+# # List of the strings that is used to add correct label for each box.
+# PATH_TO_LABELS = 'label_map.pbtxt'
+
+# NUM_CLASSES = 6
+
+PATH_TO_CKPT = 'frozen_inference_graph_216_imgs_31_btch.pb'
 
 # List of the strings that is used to add correct label for each box.
-PATH_TO_LABELS = 'label_map.pbtxt'
+PATH_TO_LABELS = 'label_map_204_imgs_3000_steps.pbtxt'
 
-NUM_CLASSES = 6
+NUM_CLASSES = 8
+
+font = cv2.FONT_HERSHEY_SIMPLEX
 
 
 # ## Load a (frozen) Tensorflow model into memory.
@@ -113,6 +122,8 @@ with detection_graph.as_default():
                 np.squeeze(classes).astype(np.int32),
                 np.squeeze(scores),
                 category_index,
+                min_score_thresh=.8,
+                max_boxes_to_draw=1,
                 use_normalized_coordinates=True,
                 line_thickness=8)
             
@@ -125,6 +136,8 @@ with detection_graph.as_default():
                     largest_index = i
                     # boxes[i] is the box which will be drawn
             if scores[0][largest_index] >= min_score_thresh:
+                cv2.putText(image_np, str(category_index[classes[0][largest_index]]["name"]), (100, 100), font, 2, (0, 0, 255), 2, cv2.LINE_AA)
+                cv2.putText(image_np, str(scores[0][largest_index]), (800, 100), font, 2, (0, 0, 255), 2, cv2.LINE_AA)
                 print ("This class is gonna get used", classes[0][largest_index], scores[0][largest_index])
                 sock.sendto(b'%f' % float(classes[0][largest_index]), (UDP_IP, UDP_PORT))
 
