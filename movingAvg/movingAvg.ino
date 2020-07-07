@@ -5,17 +5,17 @@ float Kp_R = 0.14;        //2.5 = default, 6.5 = perfect, 26.5 = shakin         
 float Ki_R = 0.13;                                                      //Initial Integral Gain
 float Kd_R = 0.04;
 
-float Kp_L = 0.3;        //2.5 = default, 6.5 = perfect, 26.5 = shakin                                              //Initial Proportional Gain
-float Ki_L = 0.28;                                                      //Initial Integral Gain
-float Kd_L = 0.09;
+float Kp_L = 0.14;        //2.5 = default, 6.5 = perfect, 26.5 = shakin                                              //Initial Proportional Gain
+float Ki_L = 0.13;                                                      //Initial Integral Gain
+float Kd_L = 0.04;
 
 float pinP = 0;    //pin Analog 0 for the input of the potentiometer
 float pinD = 1; 
 
 int maxspeed = 255;
 double Setspeed = 200;
-double Input_R, Output_R;
-double Input_L, Output_L;
+double Input_R = 0, Output_R = 0;
+double Input_L = 0, Output_L = 0;
 
 PID PID_R(&Input_R, &Output_R, &Setspeed, Kp_R, Ki_R, Kd_R, DIRECT);
 PID PID_L(&Input_L, &Output_L, &Setspeed, Kp_L, Ki_L, Kd_L, DIRECT);
@@ -69,7 +69,6 @@ void setup() {
 
   pinMode(13, INPUT_PULLUP);
   motorInitialize();
-  Input_R = 200;
   PID_R.SetMode(AUTOMATIC);                                          //Set PID object myPID to AUTOMATIC 
   PID_R.SetOutputLimits(0, maxspeed);
   PID_L.SetMode(AUTOMATIC);                                          //Set PID object myPID to AUTOMATIC 
@@ -84,7 +83,7 @@ void loop() {
   if(digitalRead(13) == LOW)
     Setspeed = 0;
   else
-    Setspeed = 80;
+    Setspeed = 120;
   
 //  Kp_R = analogRead(pinP);
 //  Kp_R = Kp_R/1000;
