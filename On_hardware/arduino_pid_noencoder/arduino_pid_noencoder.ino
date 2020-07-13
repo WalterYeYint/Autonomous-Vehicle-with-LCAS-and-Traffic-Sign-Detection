@@ -50,7 +50,7 @@ void setup() {
 void loop()
 {
 //  Kp = analogRead(pinP);
-//  Kp = Ki/100;
+//  Kp = Kp/100;
 //  Kd = analogRead(pinD);
 //  Kd = Kd/100;
 //  myPID.SetTunings(Kp, Ki, Kd);

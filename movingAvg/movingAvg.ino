@@ -1,13 +1,18 @@
 #include <TimerOne.h>
 #include <PID_v1.h>
 
-float Kp_R = 0.14;        //2.5 = default, 6.5 = perfect, 26.5 = shakin                                              //Initial Proportional Gain
-float Ki_R = 0.13;                                                      //Initial Integral Gain
-float Kd_R = 0.04;
+//double curtime=0, lasttime=0, totaltime=0;
+//Tu 1.71, Ku 0.7
 
-float Kp_L = 0.14;        //2.5 = default, 6.5 = perfect, 26.5 = shakin                                              //Initial Proportional Gain
-float Ki_L = 0.13;                                                      //Initial Integral Gain
-float Kd_L = 0.04;
+
+
+float Kp_R = 0.315;        //2.5 = default, 6.5 = perfect, 26.5 = shakin                                              //Initial Proportional Gain
+float Ki_R = 0.221;                                                      //Initial Integral Gain
+float Kd_R = 0.0;
+
+float Kp_L = 0.1;        //2.5 = default, 6.5 = perfect, 26.5 = shakin                                              //Initial Proportional Gain
+float Ki_L = 1;                                                      //Initial Integral Gain
+float Kd_L = 0.1;
 
 float pinP = 0;    //pin Analog 0 for the input of the potentiometer
 float pinD = 1; 
@@ -49,6 +54,8 @@ float circumference = (wheeldiameter * 3.14) / 10.00; // Calculate wheel circumf
 // implementing moving average
 const int samplingFreq = 20;    // 20 -> 20 samples per second or sample at every 50 ms
 
+int baseSpeed = 60;
+
 int arrayCount_R = 0;             // index for sample storing array
 float sum_R=0.0;          // to collect sum of the samples
 float speedArray_R[samplingFreq];   // declaring array with size of sampling freq
@@ -70,66 +77,71 @@ void setup() {
   pinMode(13, INPUT_PULLUP);
   motorInitialize();
   PID_R.SetMode(AUTOMATIC);                                          //Set PID object myPID to AUTOMATIC 
-  PID_R.SetOutputLimits(0, maxspeed);
+  PID_R.SetOutputLimits(-maxspeed, maxspeed);
   PID_L.SetMode(AUTOMATIC);                                          //Set PID object myPID to AUTOMATIC 
-  PID_L.SetOutputLimits(0, maxspeed);
-  motorMove_R(0);
-  motorMove_L(0);
+  PID_L.SetOutputLimits(-maxspeed, maxspeed);
+//  motorMove_R(0);
+//  motorMove_L(0);
 //  delay(3000);
 
 }
 
 void loop() {
+  
   if(digitalRead(13) == LOW)
-    Setspeed = 0;
+    Setspeed = 100;
   else
-    Setspeed = 120;
+    Setspeed = 70;
   
 //  Kp_R = analogRead(pinP);
-//  Kp_R = Kp_R/1000;
+//  Kp_R = Kp_R/500;
 //  Kd_R = analogRead(pinD);
-//  Kd_R = Kd_R/10000;
-////  Ki_R = analogRead(pinD);
-////  Ki_R = Ki_R/1500;
+//  Kd_R = Kd_R/500;
+//  Ki_R = analogRead(pinD);
+//  Ki_R = Ki_R/500;
 //  PID_R.SetTunings(Kp_R, Ki_R, Kd_R);
-
+  
 //  Kp_L = analogRead(pinP);
-//  Kp_L = Kp_L/1000;
+//  Kp_L = Kp_L/500;
 //  Kd_L = analogRead(pinD);
-//  Kd_L = Kd_L/10000;
-////  Ki_L = analogRead(pinD);
-////  Ki_L = Ki_L/1500;
+//  Kd_L = Kd_L/500;
+//  Ki_L = analogRead(pinD);
+//  Ki_L = Ki_L/500;
 //  PID_L.SetTunings(Kp_L, Ki_L, Kd_L);
 
   Input_R = filtered_R;
   Input_L = filtered_L;
   
   PID_R.Compute();
-  PID_L.Compute();
+//  PID_L.Compute();
   // Put whatever you want here!
   motorMove_R(Output_R);
-  motorMove_L(Output_L);
+//  motorMove_L(Output_L);
 //  Serial.println(counter_R);
 //  Serial.print("Speed_L = :");
-//  Serial.print(Kp_R);
-//  Serial.print(" ");
-//  Serial.print(Kd_R);
-//  Serial.print(" ");
+  Serial.print(Kp_R);
+  Serial.print(" ");
+  Serial.print(Kd_R);
+  Serial.print(" ");
 ////  Serial.print(Ki_R);
 ////  Serial.print(" ");
   Serial.print(Input_R);
   Serial.print(" ");
 
-  Serial.print(Kp_L);
-  Serial.print(" ");
-  Serial.print(Kd_L);
-  Serial.print(" ");
+//  Serial.print(totaltime);
+//  Serial.print(" ");
+//  Serial.print(Kp_L);
+//  Serial.print(" ");
+//  Serial.print(Kd_L);
+//  Serial.print(" ");
 //  Serial.print(Ki_L);
 //  Serial.print(" ");
-  Serial.print(Input_L);
+//  Serial.print(Input_L);
+  Serial.print(Output_R);
   Serial.print(" ");
 //  Serial.print("Speed_R = :");
   Serial.println(Setspeed);
+  
 }
 
 void ISR_CountPlus_R(){
@@ -140,6 +152,7 @@ void ISR_CountPlus_L(){
 }
 
 void calculateSpeed(){
+//  lasttime = micros();
   int i;                  // loop index
   int currentCount_R;             // declare a temporary variable
   currentCount_R = slotCount_R;     // store current count into that
@@ -199,6 +212,11 @@ void calculateSpeed(){
 
   slotCount_L = 0;     // used current count becomes the previous count
   sum_L = 0;
+
+//  curtime = micros();
+//  totaltime = curtime - lasttime;
+//  curtime = 0;
+//  lasttime = 0;
 }
 
 
@@ -215,15 +233,17 @@ void motorInitialize(){
   analogWrite(L298N_EN_B, 0);  
 } 
 
-void motorMove_R(int velocity){
-  int right_speed = constrain(velocity, 0, maxspeed);
+void motorMove_R(int offset){
+  int right_speed = baseSpeed + offset;
+  right_speed = constrain(right_speed, 0, maxspeed);
   digitalWrite(L298N_C, HIGH);
   digitalWrite(L298N_D, LOW);
   analogWrite(L298N_EN_B, right_speed);
 }
 
-void motorMove_L(int velocity){
-  int left_speed = constrain(velocity , 0, maxspeed);
+void motorMove_L(int offset){
+  int left_speed = baseSpeed + offset;
+  left_speed = constrain(left_speed , 0, maxspeed);
   digitalWrite(L298N_A, HIGH);
   digitalWrite(L298N_B, LOW);
   analogWrite(L298N_EN, left_speed);
