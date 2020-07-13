@@ -14,8 +14,8 @@ float Kp_L = 0.1;        //2.5 = default, 6.5 = perfect, 26.5 = shakin          
 float Ki_L = 1;                                                      //Initial Integral Gain
 float Kd_L = 0.1;
 
-float pinP = 0;    //pin Analog 0 for the input of the potentiometer
-float pinD = 1; 
+int pinP = 0;    //pin Analog 0 for the input of the potentiometer
+int pinD = 1; 
 
 int maxspeed = 255;
 double Setspeed = 200;
@@ -25,11 +25,11 @@ double Input_L = 0, Output_L = 0;
 PID PID_R(&Input_R, &Output_R, &Setspeed, Kp_R, Ki_R, Kd_R, DIRECT);
 PID PID_L(&Input_L, &Output_L, &Setspeed, Kp_L, Ki_L, Kd_L, DIRECT);
 
-#define L298N_A       11   //A pin of motor driver (L298N)
-#define L298N_B       10   //B pin of motor driver (L298N)
+#define L298N_A       12   //A pin of motor driver (L298N)
+#define L298N_B       11   //B pin of motor driver (L298N)
 #define L298N_EN      6  //EN pin (Left wheel) of motor driver (L298N)
-#define L298N_C       9   //A pin of motor driver (L298N)
-#define L298N_D       8   //B pin of motor driver (L298N)
+#define L298N_C       10   //A pin of motor driver (L298N)
+#define L298N_D       9   //B pin of motor driver (L298N)
 #define L298N_EN_B      5   //EN_B (Right wheel) pin of motor driver (L298N)
 
 const byte encoderPin_R = 2;

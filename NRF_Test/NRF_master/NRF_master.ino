@@ -11,7 +11,8 @@
 #include <RF24.h>
 RF24 radio(7, 8); // CE, CSN
 const byte address[6] = "00001";
-float x = 0;
+int pinP = 0;
+float Kp_R = 0;
 void setup() {
   radio.begin();
   radio.openWritingPipe(address);
@@ -19,14 +20,6 @@ void setup() {
   radio.stopListening();
 }
 void loop() {
-  for(int i=0; i<60; i++){
-    x += 0.5;
-    radio.write(&x, sizeof(x));
-    delay(100);
-  }
-  for(int i=59; i>0; i--){
-    x -= 0.5;
-    radio.write(&x, sizeof(x));
-    delay(100);
-  }
+  Kp_R = analogRead(pinP);
+  radio.write(&Kp_R, sizeof(Kp_R));
 }
