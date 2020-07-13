@@ -5,15 +5,24 @@
 //Tu 1.71, Ku 0.7
 
 
+//Libraries and object initialization for NRF
+#include <SPI.h>
+#include <nRF24L01.h>
+#include <RF24.h>
+RF24 radio(7, 8); // CE, CSN
+const byte address[6] = "00001";
 
-float Kp_R = 0.315;        //2.5 = default, 6.5 = perfect, 26.5 = shakin                                              //Initial Proportional Gain
-float Ki_R = 0.221;                                                      //Initial Integral Gain
-float Kd_R = 0.0;
+
+//PID initialvalues
+float Kp_R = 0.01;        //2.5 = default, 6.5 = perfect, 26.5 = shakin                                              //Initial Proportional Gain
+float Ki_R = 0.1;                                                      //Initial Integral Gain
+float Kd_R = 0.01;
 
 float Kp_L = 0.1;        //2.5 = default, 6.5 = perfect, 26.5 = shakin                                              //Initial Proportional Gain
 float Ki_L = 1;                                                      //Initial Integral Gain
 float Kd_L = 0.1;
 
+//potentiometer pin No.s
 int pinP = 0;    //pin Analog 0 for the input of the potentiometer
 int pinD = 1; 
 
@@ -67,6 +76,13 @@ float speedArray_L[samplingFreq];   // declaring array with size of sampling fre
 float filtered_L;         // filtered value will be stored here
 
 void setup() {
+  //Initialize for NRF
+  radio.begin();
+  radio.openWritingPipe(address);
+  radio.setPALevel(RF24_PA_MIN);
+  radio.stopListening();
+
+  
   Timer1.initialize(1000000/samplingFreq);
   Timer1.attachInterrupt(calculateSpeed);
   attachInterrupt(digitalPinToInterrupt(encoderPin_R), ISR_CountPlus_R, RISING); //increase counter when pL298N_D goes high
@@ -111,6 +127,8 @@ void loop() {
 
   Input_R = filtered_R;
   Input_L = filtered_L;
+
+  radio.write(&Input_R, sizeof(Input_R));
   
   PID_R.Compute();
 //  PID_L.Compute();
