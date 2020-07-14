@@ -11,6 +11,7 @@
 #include <RF24.h>
 RF24 radio(7, 8); // CE, CSN
 const byte address[6] = "00001";
+double temp_arr[3];
 
 
 //PID initialvalues
@@ -18,9 +19,9 @@ float Kp_R = 0.01;        //2.5 = default, 6.5 = perfect, 26.5 = shakin         
 float Ki_R = 0.1;                                                      //Initial Integral Gain
 float Kd_R = 0.01;
 
-float Kp_L = 0.1;        //2.5 = default, 6.5 = perfect, 26.5 = shakin                                              //Initial Proportional Gain
-float Ki_L = 1;                                                      //Initial Integral Gain
-float Kd_L = 0.1;
+float Kp_L = 0.01;        //2.5 = default, 6.5 = perfect, 26.5 = shakin                                              //Initial Proportional Gain
+float Ki_L = 0.1;                                                      //Initial Integral Gain
+float Kd_L = 0.01;
 
 //potentiometer pin No.s
 int pinP = 0;    //pin Analog 0 for the input of the potentiometer
@@ -61,9 +62,9 @@ const float wheeldiameter = 66.10; // Wheel diameter in millimeters, change if d
 float circumference = (wheeldiameter * 3.14) / 10.00; // Calculate wheel circumference in cm
 
 // implementing moving average
-const int samplingFreq = 20;    // 20 -> 20 samples per second or sample at every 50 ms
+const int samplingFreq = 30;    // 20 -> 20 samples per second or sample at every 50 ms
 
-int baseSpeed = 60;
+int baseSpeed = 50;
 
 int arrayCount_R = 0;             // index for sample storing array
 float sum_R=0.0;          // to collect sum of the samples
@@ -98,51 +99,60 @@ void setup() {
   PID_L.SetOutputLimits(-maxspeed, maxspeed);
 //  motorMove_R(0);
 //  motorMove_L(0);
-//  delay(3000);
+  delay(3000);
 
 }
 
 void loop() {
   
-  if(digitalRead(13) == LOW)
-    Setspeed = 100;
+  if(digitalRead(13) == LOW){
+    Setspeed = 50;
+  }
   else
     Setspeed = 70;
   
 //  Kp_R = analogRead(pinP);
-//  Kp_R = Kp_R/500;
-//  Kd_R = analogRead(pinD);
-//  Kd_R = Kd_R/500;
+//  Kp_R = Kp_R/2000;
+  Kd_R = analogRead(pinD);
+  Kd_R = Kd_R/5000;
 //  Ki_R = analogRead(pinD);
-//  Ki_R = Ki_R/500;
-//  PID_R.SetTunings(Kp_R, Ki_R, Kd_R);
+//  Ki_R = Ki_R/1000;
+  PID_R.SetTunings(Kp_R, Ki_R, Kd_R);
   
 //  Kp_L = analogRead(pinP);
-//  Kp_L = Kp_L/500;
-//  Kd_L = analogRead(pinD);
-//  Kd_L = Kd_L/500;
+//  Kp_L = Kp_L/2000;
+  Kd_L = analogRead(pinD);
+  Kd_L = Kd_L/5000;
 //  Ki_L = analogRead(pinD);
-//  Ki_L = Ki_L/500;
-//  PID_L.SetTunings(Kp_L, Ki_L, Kd_L);
+//  Ki_L = Ki_L/1000;
+  PID_L.SetTunings(Kp_L, Ki_L, Kd_L);
 
   Input_R = filtered_R;
   Input_L = filtered_L;
-
-  radio.write(&Input_R, sizeof(Input_R));
   
   PID_R.Compute();
-//  PID_L.Compute();
+  PID_L.Compute();
   // Put whatever you want here!
-  motorMove_R(Output_R);
-//  motorMove_L(Output_L);
+//  if(digitalRead(13) == LOW){
+//    motorStop();
+//  }
+//  else{
+    motorMove_R(Output_R);
+    motorMove_L(Output_L);
+//  }
+
+  temp_arr[0] = Input_R;
+  temp_arr[1] = Output_R;
+  radio.write(&temp_arr, sizeof(temp_arr));
+  
 //  Serial.println(counter_R);
 //  Serial.print("Speed_L = :");
   Serial.print(Kp_R);
   Serial.print(" ");
   Serial.print(Kd_R);
   Serial.print(" ");
-////  Serial.print(Ki_R);
-////  Serial.print(" ");
+//  Serial.print(Ki_R);
+//  Serial.print(" ");
   Serial.print(Input_R);
   Serial.print(" ");
 
@@ -266,3 +276,12 @@ void motorMove_L(int offset){
   digitalWrite(L298N_B, LOW);
   analogWrite(L298N_EN, left_speed);
 }     
+
+void motorStop(){
+  digitalWrite(L298N_A, 0);
+  digitalWrite(L298N_B, 0);
+  analogWrite(L298N_EN, 0); 
+  digitalWrite(L298N_C, 0);
+  digitalWrite(L298N_D, 0);
+  analogWrite(L298N_EN_B, 0);  
+}

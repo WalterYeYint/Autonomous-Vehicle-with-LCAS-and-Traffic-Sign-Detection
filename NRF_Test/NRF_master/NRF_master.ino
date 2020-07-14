@@ -12,7 +12,10 @@
 RF24 radio(7, 8); // CE, CSN
 const byte address[6] = "00001";
 int pinP = 0;
-float Kp_R = 0;
+int pinD = 1;
+double Kp_R = 0;
+double Ki_R = 0;
+double temp_arr[3];
 void setup() {
   radio.begin();
   radio.openWritingPipe(address);
@@ -21,5 +24,8 @@ void setup() {
 }
 void loop() {
   Kp_R = analogRead(pinP);
-  radio.write(&Kp_R, sizeof(Kp_R));
+  Ki_R = analogRead(pinD);
+  temp_arr[0] = Kp_R;
+  temp_arr[1] = Ki_R;
+  radio.write(&temp_arr, sizeof(temp_arr));
 }
