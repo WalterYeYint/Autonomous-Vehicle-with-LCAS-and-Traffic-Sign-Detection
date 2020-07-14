@@ -15,9 +15,9 @@ double temp_arr[3];
 
 
 //PID initialvalues
-float Kp_R = 0.1;        //2.5 = default, 6.5 = perfect, 26.5 = shakin                                              //Initial Proportional Gain
-float Ki_R = 0.16;                                                      //Initial Integral Gain
-float Kd_R = 0.14;
+float Kp_R = 0.2;        //2.5 = default, 6.5 = perfect, 26.5 = shakin                                              //Initial Proportional Gain
+float Ki_R = 0.3;                                                      //Initial Integral Gain
+float Kd_R = 0.12;
 
 float Kp_L = 0.01;        //2.5 = default, 6.5 = perfect, 26.5 = shakin                                              //Initial Proportional Gain
 float Ki_L = 0.1;                                                      //Initial Integral Gain
@@ -106,7 +106,7 @@ void setup() {
 void loop() {
   
   if(digitalRead(13) == LOW){
-    Setspeed = 50;
+    Setspeed = 100;
   }
   else
     Setspeed = 70;
