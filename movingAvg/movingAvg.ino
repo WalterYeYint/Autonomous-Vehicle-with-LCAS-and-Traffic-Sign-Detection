@@ -15,9 +15,9 @@ double temp_arr[3];
 
 
 //PID initialvalues
-float Kp_R = 0.01;        //2.5 = default, 6.5 = perfect, 26.5 = shakin                                              //Initial Proportional Gain
-float Ki_R = 0.1;                                                      //Initial Integral Gain
-float Kd_R = 0.01;
+float Kp_R = 0.1;        //2.5 = default, 6.5 = perfect, 26.5 = shakin                                              //Initial Proportional Gain
+float Ki_R = 0.16;                                                      //Initial Integral Gain
+float Kd_R = 0.14;
 
 float Kp_L = 0.01;        //2.5 = default, 6.5 = perfect, 26.5 = shakin                                              //Initial Proportional Gain
 float Ki_L = 0.1;                                                      //Initial Integral Gain
@@ -62,9 +62,9 @@ const float wheeldiameter = 66.10; // Wheel diameter in millimeters, change if d
 float circumference = (wheeldiameter * 3.14) / 10.00; // Calculate wheel circumference in cm
 
 // implementing moving average
-const int samplingFreq = 30;    // 20 -> 20 samples per second or sample at every 50 ms
+const int samplingFreq = 20;    // 20 -> 20 samples per second or sample at every 50 ms
 
-int baseSpeed = 50;
+int baseSpeed = 40;
 
 int arrayCount_R = 0;             // index for sample storing array
 float sum_R=0.0;          // to collect sum of the samples
@@ -99,7 +99,7 @@ void setup() {
   PID_L.SetOutputLimits(-maxspeed, maxspeed);
 //  motorMove_R(0);
 //  motorMove_L(0);
-  delay(3000);
+//  delay(3000);
 
 }
 
@@ -113,19 +113,19 @@ void loop() {
   
 //  Kp_R = analogRead(pinP);
 //  Kp_R = Kp_R/2000;
-  Kd_R = analogRead(pinD);
-  Kd_R = Kd_R/5000;
+//  Kd_R = analogRead(pinD);
+//  Kd_R = Kd_R/5000;
 //  Ki_R = analogRead(pinD);
 //  Ki_R = Ki_R/1000;
-  PID_R.SetTunings(Kp_R, Ki_R, Kd_R);
+//  PID_R.SetTunings(Kp_R, Ki_R, Kd_R);
   
 //  Kp_L = analogRead(pinP);
 //  Kp_L = Kp_L/2000;
-  Kd_L = analogRead(pinD);
-  Kd_L = Kd_L/5000;
+//  Kd_L = analogRead(pinD);
+//  Kd_L = Kd_L/5000;
 //  Ki_L = analogRead(pinD);
 //  Ki_L = Ki_L/1000;
-  PID_L.SetTunings(Kp_L, Ki_L, Kd_L);
+//  PID_L.SetTunings(Kp_L, Ki_L, Kd_L);
 
   Input_R = filtered_R;
   Input_L = filtered_L;
@@ -138,7 +138,7 @@ void loop() {
 //  }
 //  else{
     motorMove_R(Output_R);
-    motorMove_L(Output_L);
+//    motorMove_L(Output_L);
 //  }
 
   temp_arr[0] = Input_R;
