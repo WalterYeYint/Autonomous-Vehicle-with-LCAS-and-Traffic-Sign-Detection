@@ -17,11 +17,11 @@ double temp_arr[3];
 //PID initialvalues
 float Kp_R = 0.2;        //2.5 = default, 6.5 = perfect, 26.5 = shakin                                              //Initial Proportional Gain
 float Ki_R = 0.3;                                                      //Initial Integral Gain
-float Kd_R = 0.12;
+float Kd_R = 0.09;
 
-float Kp_L = 0.01;        //2.5 = default, 6.5 = perfect, 26.5 = shakin                                              //Initial Proportional Gain
-float Ki_L = 0.1;                                                      //Initial Integral Gain
-float Kd_L = 0.01;
+float Kp_L = 0.2;        //2.5 = default, 6.5 = perfect, 26.5 = shakin                                              //Initial Proportional Gain
+float Ki_L = 0.3;                                                      //Initial Integral Gain
+float Kd_L = 0.09;
 
 //potentiometer pin No.s
 int pinP = 0;    //pin Analog 0 for the input of the potentiometer
@@ -29,6 +29,7 @@ int pinD = 1;
 
 int maxspeed = 255;
 double Setspeed = 200;
+int baseSpeed = 40;
 double Input_R = 0, Output_R = 0;
 double Input_L = 0, Output_L = 0;
 
@@ -64,8 +65,6 @@ float circumference = (wheeldiameter * 3.14) / 10.00; // Calculate wheel circumf
 // implementing moving average
 const int samplingFreq = 20;    // 20 -> 20 samples per second or sample at every 50 ms
 
-int baseSpeed = 40;
-
 int arrayCount_R = 0;             // index for sample storing array
 float sum_R=0.0;          // to collect sum of the samples
 float speedArray_R[samplingFreq];   // declaring array with size of sampling freq
@@ -83,7 +82,7 @@ void setup() {
   radio.setPALevel(RF24_PA_MIN);
   radio.stopListening();
 
-  
+  //Initialize Timer and interrupts
   Timer1.initialize(1000000/samplingFreq);
   Timer1.attachInterrupt(calculateSpeed);
   attachInterrupt(digitalPinToInterrupt(encoderPin_R), ISR_CountPlus_R, RISING); //increase counter when pL298N_D goes high
@@ -99,7 +98,7 @@ void setup() {
   PID_L.SetOutputLimits(-maxspeed, maxspeed);
 //  motorMove_R(0);
 //  motorMove_L(0);
-//  delay(3000);
+  delay(3000);
 
 }
 
@@ -130,15 +129,15 @@ void loop() {
   Input_R = filtered_R;
   Input_L = filtered_L;
   
-  PID_R.Compute();
-  PID_L.Compute();
   // Put whatever you want here!
 //  if(digitalRead(13) == LOW){
 //    motorStop();
 //  }
 //  else{
+    PID_R.Compute();
+    PID_L.Compute();
     motorMove_R(Output_R);
-//    motorMove_L(Output_L);
+    motorMove_L(Output_L);
 //  }
 
   temp_arr[0] = Input_R;
@@ -164,8 +163,8 @@ void loop() {
 //  Serial.print(" ");
 //  Serial.print(Ki_L);
 //  Serial.print(" ");
-//  Serial.print(Input_L);
-  Serial.print(Output_R);
+  Serial.print(Input_L);
+//  Serial.print(Output_R);
   Serial.print(" ");
 //  Serial.print("Speed_R = :");
   Serial.println(Setspeed);
