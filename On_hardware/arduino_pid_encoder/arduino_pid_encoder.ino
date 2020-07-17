@@ -81,7 +81,8 @@ float pinP = 0;    //pin Analog 0 for the input of the potentiometer
 float pinD = 1; 
 
 double Setpoint = 90, Input, Output;   
-int maxspeed = 255;                                    
+int maxspeed = 150; 
+int max_ang_velocity = 255;                                   
 int baseSpeed = 40;
 double Setspeed = 0;
 double Input_R = 0, Output_R = 0, Setspeed_R = 0;
@@ -116,7 +117,7 @@ void setup() {
   motorInitialize();
   Input = 90; 
   myPID.SetMode(AUTOMATIC);                                          //Set PID object myPID to AUTOMATIC 
-  myPID.SetOutputLimits(-maxspeed, maxspeed);                                     //Set Output limits to -80 and 80 degrees. 
+  myPID.SetOutputLimits(-max_ang_velocity, max_ang_velocity);                                     //Set Output limits to -80 and 80 degrees. 
   PID_R.SetMode(AUTOMATIC);                                          //Set PID object myPID to AUTOMATIC 
   PID_R.SetOutputLimits(-maxspeed, maxspeed);
   PID_L.SetMode(AUTOMATIC);                                          //Set PID object myPID to AUTOMATIC 
@@ -147,25 +148,18 @@ void loop()
 //  Ki_L = analogRead(pinD);
 //  Ki_L = Ki_L/1000;
 //  PID_L.SetTunings(Kp_L, Ki_L, Kd_L);
-
-  if(Serial.available()){
-    for(int i=0; i<4; i++){
-      r = (Serial.readStringUntil('\t'));  //conveting the value of chars to integer
-      data[i] = r.toFloat();
-  //      Serial.print(data[i]);
-  //      Serial.print('\t');
-    }
-    Input = data[0];
-    traffic_class = data[1];
+  
   //    Kp = data[1];
   //    Ki = data[2];
   //    Kd = data[3];
-  //    Serial.println(Input);
+  if(Serial.available()){
+    readSerialData();
     
     if(traffic_class == 6){
       motorStop();
       while(traffic_class != 1){
-        
+        if(Serial.available())
+          readSerialData();
       }
     }
     else{
@@ -273,6 +267,18 @@ void calculateSpeed(){
 //  lasttime = 0;
 }
 
+
+void readSerialData(){
+  for(int i=0; i<4; i++){
+    r = (Serial.readStringUntil('\t'));  //conveting the value of chars to integer
+    data[i] = r.toFloat();
+//      Serial.print(data[i]);
+//      Serial.print('\t');
+  }
+  Input = data[0];
+  traffic_class = data[1];
+//    Serial.println(Input);
+}
 
 void motorInitialize(){
   pinMode (L298N_A, OUTPUT);
