@@ -74,7 +74,7 @@ float data[4];
 
 float Kp = 0.02;        //2.5 = default, 6.5 = perfect, 26.5 = shakin                                              //Initial Proportional Gain
 float Ki = 0;                                                      //Initial Integral Gain
-float Kd = 0.27;   
+float Kd = 0.22;   
 
 //potentiometers pin no.s
 float pinP = 0;    //pin Analog 0 for the input of the potentiometer
