@@ -73,8 +73,8 @@ float data[4];
 //better value => Kp=0.47,Ki=0,Kd=0.34
 
 float Kp = 0.02;        //2.5 = default, 6.5 = perfect, 26.5 = shakin                                              //Initial Proportional Gain
-float Ki = 0;                                                      //Initial Integral Gain
-float Kd = 0.22;   
+float Ki = 0.02;                                                      //Initial Integral Gain
+float Kd = 0.3;   
 
 //potentiometers pin no.s
 float pinP = 0;    //pin Analog 0 for the input of the potentiometer
@@ -90,6 +90,10 @@ double Input_L = 0, Output_L = 0, Setspeed_L = 0;
 float cm = 90;  //Camera offset data
 float cm2 = 9;  //traffic_class for readSerialData()
 float traffic_class = 0;
+
+
+//For measuring time between NRF data arrays sent
+double curtime=0, lasttime=0, totaltime=0;
 
 
 PID PID_R(&Input_R, &Output_R, &Setspeed_R, Kp_R, Ki_R, Kd_R, DIRECT);
@@ -174,10 +178,17 @@ void loop()
       motorMove_R(Output_R);
       motorMove_L(Output_L);  
 
+
+      //For calculating time between each NRF data array sent
+//      curtime = millis();
+//      totaltime = curtime - lasttime;
+//      lasttime = curtime;
+      
       //Send data to Observer base station
       temp_arr[0] = Input_R;
       temp_arr[1] = Output_R;
       radio.write(&temp_arr, sizeof(temp_arr));
+      
     //  Serial.println(Input);
     //  Serial.println(Output);
     //  Serial.print(" "); 
