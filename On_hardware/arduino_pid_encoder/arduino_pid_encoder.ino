@@ -70,10 +70,10 @@ float filtered_L;         // filtered value will be stored here
 String r;
 float data[4];
 //pretty good value => Kp=0.62,Ki=0,Kd=0.37
-//better value => Kp=0.47,Ki=0,Kd=0.34
+//better value => Kp=0.02,Ki=0.03,Kd=0.26
 
 float Kp = 0.02;        //2.5 = default, 6.5 = perfect, 26.5 = shakin                                              //Initial Proportional Gain
-float Ki = 0.02;                                                      //Initial Integral Gain
+float Ki = 0.04;                                                      //Initial Integral Gain
 float Kd = 0.3;   
 
 //potentiometers pin no.s
