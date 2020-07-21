@@ -26,13 +26,13 @@ void loop() {
   RF24NetworkHeader header2(node02);
   for(int i=0; i<20; i++){
     data[0] = i;
-    bool ok = network.write(header, &data, sizeof(data)); // Send the data
-    bool ok2 = network.write(header2, &data, sizeof(data)); // Send the data
+    network.write(header, &data, sizeof(data)); // Send the data
+    network.write(header2, &data, sizeof(data)); // Send the data
   }
   for(int i=20; i>0; i--){
     data[0] = i;
-    bool ok = network.write(header, &data, sizeof(data)); // Send the data
-    bool ok2 = network.write(header2, &data, sizeof(data)); // Send the data
+    network.write(header, &data, sizeof(data)); // Send the data
+    network.write(header2, &data, sizeof(data)); // Send the data
   }
   
 }
