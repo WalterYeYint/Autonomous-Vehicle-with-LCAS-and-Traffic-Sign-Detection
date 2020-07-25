@@ -5,16 +5,11 @@
 
 
 //Libraries and object initialization for NRF
-#include <RF24Network.h>
 #include <SPI.h>
+#include <nRF24L01.h>
 #include <RF24.h>
-RF24 radio(7, 8);               // nRF24L01 (CE,CSN)
-RF24Network network(radio);      // Include the radio in the network
-const uint16_t this_node = 01;   // Address of our node in Octal format ( 04,031, etc)
-const uint16_t master00 = 00;    // Address of the other node in Octal format
-const uint16_t node02 = 02;    // Address of the other node in Octal forma
-RF24NetworkHeader header(master00);
-RF24NetworkHeader header2(node02);
+RF24 radio(7, 8); // CE, CSN
+const byte address[6] = "00001";
 double temp_arr[3];
 
 //PID initialvalues
@@ -75,11 +70,11 @@ float filtered_L;         // filtered value will be stored here
 String r;
 float data[4];
 //pretty good value => Kp=0.62,Ki=0,Kd=0.37
-//better value => Kp=0.02,Ki=0.03,Kd=0.26
+//better value => Kp=0.47,Ki=0,Kd=0.34
 
 float Kp = 0.04;        //2.5 = default, 6.5 = perfect, 26.5 = shakin                                              //Initial Proportional Gain
-float Ki = 0.0;                                                      //Initial Integral Gain
-float Kd = 0.33;   
+float Ki = 0.05;                                                      //Initial Integral Gain
+float Kd = 0.34;   
 
 //potentiometers pin no.s
 float pinP = 0;    //pin Analog 0 for the input of the potentiometer
@@ -108,11 +103,11 @@ PID myPID(&Input, &Output, &Setpoint, Kp, Ki, Kd, DIRECT);           //Initializ
 
 void setup() {
   //Initialize for NRF
-  SPI.begin();
   radio.begin();
-  network.begin(90, this_node); //(channel, node address)
-  radio.setDataRate(RF24_2MBPS);
-  
+  radio.openWritingPipe(address);
+  radio.setPALevel(RF24_PA_MIN);
+  radio.stopListening();
+
   //Initialize Timer and interrupts
   Timer1.initialize(1000000/samplingFreq);
   Timer1.attachInterrupt(calculateSpeed);
@@ -135,7 +130,6 @@ void setup() {
 
 void loop()
 {
-  network.update();
   Setspeed = 70;
 //  Kp = analogRead(pinP);
 //  Kp = Kp/100;
@@ -167,15 +161,14 @@ void loop()
     
     if(traffic_class == 6){
       motorStop();
-
+      
       while(traffic_class != 1){
         Input_R = 0;
         Input_L = 0;
         temp_arr[0] = Input_R;
         temp_arr[1] = Input_L;
         temp_arr[2] = 1;
-        network.write(header, &temp_arr, sizeof(temp_arr)); // Send the data
-//        network.write(header2, &temp_arr, sizeof(temp_arr)); // Send the data
+        radio.write(&temp_arr, sizeof(temp_arr));
 //        if(Serial.available())
 //          readSerialData();
       }
@@ -202,9 +195,7 @@ void loop()
       temp_arr[0] = Input_R;
       temp_arr[1] = Input_L;
       temp_arr[2] = 0;
-      network.write(header, &temp_arr, sizeof(temp_arr)); // Send the data
-//      network.write(header2, &temp_arr, sizeof(temp_arr)); // Send the data
-      
+      radio.write(&temp_arr, sizeof(temp_arr));
     //  Serial.println(Input);
     //  Serial.println(Output);
     //  Serial.print(" "); 
