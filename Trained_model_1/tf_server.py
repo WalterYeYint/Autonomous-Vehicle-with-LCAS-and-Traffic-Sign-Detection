@@ -29,6 +29,7 @@ tf.config.experimental.set_memory_growth(physical_devices[0], True)
 
 # Initialize UDP socket
 UDP_IP = "192.168.1.121"
+# UDP_IP = "192.168.43.85"
 UDP_PORT = 5006
 MESSAGE = 0
 sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM) # (Internet, UDP)

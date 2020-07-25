@@ -10,12 +10,14 @@ import imagezmq
 # Initialize UDP
 import socket
 UDP_IP = "192.168.1.114"
+# UDP_IP = "192.168.43.74"
 UDP_PORT = 5006
 sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM) # (Internet, UDP)
 sock.bind(('', UDP_PORT))
 
 # Initializing ImageSender Object with server's ip address, and get hostname of pi
 sender = imagezmq.ImageSender(connect_to="tcp://{}:5555".format('192.168.1.114'))
+# sender = imagezmq.ImageSender(connect_to="tcp://{}:5555".format('192.168.43.74'))
 rpiName = socket.gethostname()
 
 class PiVideoStream:

@@ -77,9 +77,9 @@ float data[4];
 //pretty good value => Kp=0.62,Ki=0,Kd=0.37
 //better value => Kp=0.02,Ki=0.03,Kd=0.26
 
-float Kp = 0.02;        //2.5 = default, 6.5 = perfect, 26.5 = shakin                                              //Initial Proportional Gain
+float Kp = 0.04;        //2.5 = default, 6.5 = perfect, 26.5 = shakin                                              //Initial Proportional Gain
 float Ki = 0.0;                                                      //Initial Integral Gain
-float Kd = 0.27;   
+float Kd = 0.33;   
 
 //potentiometers pin no.s
 float pinP = 0;    //pin Analog 0 for the input of the potentiometer
@@ -167,9 +167,17 @@ void loop()
     
     if(traffic_class == 6){
       motorStop();
+
       while(traffic_class != 1){
-        if(Serial.available())
-          readSerialData();
+        Input_R = 0;
+        Input_L = 0;
+        temp_arr[0] = Input_R;
+        temp_arr[1] = Input_L;
+        temp_arr[2] = 1;
+        network.write(header, &temp_arr, sizeof(temp_arr)); // Send the data
+//        network.write(header2, &temp_arr, sizeof(temp_arr)); // Send the data
+//        if(Serial.available())
+//          readSerialData();
       }
     }
     else{
@@ -194,8 +202,8 @@ void loop()
       temp_arr[0] = Input_R;
       temp_arr[1] = Input_L;
       temp_arr[2] = 0;
-//      network.write(header, &temp_arr, sizeof(temp_arr)); // Send the data
-      network.write(header2, &temp_arr, sizeof(temp_arr)); // Send the data
+      network.write(header, &temp_arr, sizeof(temp_arr)); // Send the data
+//      network.write(header2, &temp_arr, sizeof(temp_arr)); // Send the data
       
     //  Serial.println(Input);
     //  Serial.println(Output);
