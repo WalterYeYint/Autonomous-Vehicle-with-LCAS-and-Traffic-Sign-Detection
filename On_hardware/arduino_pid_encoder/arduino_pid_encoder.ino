@@ -74,7 +74,7 @@ float data[4];
 
 float Kp = 0.04;        //2.5 = default, 6.5 = perfect, 26.5 = shakin                                              //Initial Proportional Gain
 float Ki = 0.05;                                                      //Initial Integral Gain
-float Kd = 0.34;   
+float Kd = 0.38;   
 
 //potentiometers pin no.s
 float pinP = 0;    //pin Analog 0 for the input of the potentiometer
@@ -159,7 +159,7 @@ void loop()
   if(Serial.available()){
     readSerialData();
     
-    if(traffic_class == 6){
+    if(traffic_class == 6 || traffic_class == 2){
       motorStop();
       
       while(traffic_class != 1){
@@ -169,8 +169,8 @@ void loop()
         temp_arr[1] = Input_L;
         temp_arr[2] = 1;
         radio.write(&temp_arr, sizeof(temp_arr));
-//        if(Serial.available())
-//          readSerialData();
+        if(Serial.available())
+          readSerialData();
       }
     }
     else{

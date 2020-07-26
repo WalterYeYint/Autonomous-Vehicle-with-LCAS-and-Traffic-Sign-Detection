@@ -14,7 +14,7 @@ import time
 
 # define serial variable for communication
 ser = serial.Serial('/dev/ttyACM0', 9600)
-time.sleep(7)   #Important: wait for serial at least 5 secs, otherwise false data
+time.sleep(2)   #Important: wait for serial at least 5 secs, otherwise false data
 
 
 ####################################################################################
@@ -112,7 +112,7 @@ def detect_line_segments(cropped_edges):
     # tuning min_threshold, minLineLength, maxLineGap is a trial and error process by hand
     rho = 1  # precision in pixel, i.e. 1 pixel
     angle = np.pi / 180  # degree in radian, i.e. 1 degree
-    min_threshold = 20  # minimal of votes
+    min_threshold = 30  # minimal of votes
     line_segments = cv2.HoughLinesP(cropped_edges, rho, angle, min_threshold, np.array([]), minLineLength=8,
                                     maxLineGap=4)
     return line_segments
@@ -345,7 +345,7 @@ def video_live():
     image.start_third_thread()
 
     # allow the camera to warmup
-    time.sleep(0.1)
+    time.sleep(5)
     # capture frames from the camera
     while True:
         frame = image.read()
