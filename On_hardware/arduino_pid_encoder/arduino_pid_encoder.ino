@@ -123,6 +123,7 @@ void setup() {
   pinMode(13, INPUT_PULLUP);
   motorInitialize();
   Input = 90; 
+  Setspeed = 90;
   myPID.SetMode(AUTOMATIC);                                          //Set PID object myPID to AUTOMATIC 
   myPID.SetOutputLimits(-max_ang_velocity, max_ang_velocity);                                     //Set Output limits to -80 and 80 degrees. 
   PID_R.SetMode(AUTOMATIC);                                          //Set PID object myPID to AUTOMATIC 
@@ -133,7 +134,7 @@ void setup() {
 
 void loop()
 {
-  Setspeed = 90;
+  
 //  Kp = analogRead(pinP);
 //  Kp = Kp/100;
 //  Kd = analogRead(pinD);
@@ -165,7 +166,7 @@ void loop()
     if(traffic_class == 6 || traffic_class == 2){
       motorStop();
       
-      while(traffic_class != 1){
+      while(traffic_class != 3){
         Input_R = 0;
         Input_L = 0;
         temp_arr[0] = Input_R;
@@ -177,6 +178,13 @@ void loop()
       }
     }
     else{
+      if(traffic_class == 3){
+        Setspeed = 60;
+      }
+      else if(traffic_class == 5){
+        Setspeed = 90;
+      }
+      
       myPID.Compute();
       Setspeed_R = Setspeed + (Output * L)/2;
       Setspeed_L = Setspeed - (Output * L)/2;

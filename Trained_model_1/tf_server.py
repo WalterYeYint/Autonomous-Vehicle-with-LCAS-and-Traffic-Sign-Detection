@@ -52,7 +52,8 @@ sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM) # (Internet, UDP)
 
 # NUM_CLASSES = 6
 
-PATH_TO_CKPT = 'frozen_inference_graph_216_imgs_31_btch.pb'
+# PATH_TO_CKPT = 'frozen_inference_graph_216_imgs_31_btch.pb'
+PATH_TO_CKPT = 'frozen_inference_graph_362_imgs_31_btch.pb'
 
 # List of the strings that is used to add correct label for each box.
 PATH_TO_LABELS = 'label_map_204_imgs_3000_steps.pbtxt'
@@ -137,8 +138,8 @@ with detection_graph.as_default():
                     largest_index = i
                     # boxes[i] is the box which will be drawn
             if scores[0][largest_index] >= min_score_thresh:
-                cv2.putText(image_np, str(category_index[classes[0][largest_index]]["name"]), (100, 100), font, 2, (0, 0, 255), 2, cv2.LINE_AA)
-                cv2.putText(image_np, str(scores[0][largest_index]), (800, 100), font, 2, (0, 0, 255), 2, cv2.LINE_AA)
+                cv2.putText(image_np, str(category_index[classes[0][largest_index]]["name"]), (20, 30), font, 1, (0, 0, 255), 1, cv2.LINE_AA)
+                cv2.putText(image_np, str(scores[0][largest_index]), (220, 30), font, 1, (0, 0, 255), 1, cv2.LINE_AA)
                 print ("This class is gonna get used", classes[0][largest_index], scores[0][largest_index])
                 sock.sendto(b'%f' % float(classes[0][largest_index]), (UDP_IP, UDP_PORT))
 

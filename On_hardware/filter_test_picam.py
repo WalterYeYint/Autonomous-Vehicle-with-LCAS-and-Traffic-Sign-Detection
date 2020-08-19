@@ -345,7 +345,7 @@ def video_live():
     image.start_third_thread()
 
     # allow the camera to warmup
-    time.sleep(5)
+    time.sleep(8)
     # capture frames from the camera
     while True:
         frame = image.read()
