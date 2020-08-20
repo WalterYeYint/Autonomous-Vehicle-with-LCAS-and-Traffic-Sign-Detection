@@ -52,8 +52,8 @@ def detecting_edges(img):
     # mask_2 = cv2.inRange(hsv, lower_red_2, upper_red_2)
     # mask = cv2.bitwise_or(mask, mask_2)
 
-    lower_blue = np.array([100, 120, 80])
-    upper_blue = np.array([120, 255, 255])
+    lower_blue = np.array([80, 40, 0])
+    upper_blue = np.array([140, 255, 140])
     mask = cv2.inRange(hsv, lower_blue, upper_blue)
 
     # #Convert to grayscale then dilate and erode
@@ -336,7 +336,7 @@ def test_video(video_file):
             averaged_lines, lane_lines_image = detect_lane(frame)
             hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
             canny_image = detecting_edges(frame)
-            # cropped_image = region_of_interest(canny_image)
+            cropped_image = region_of_interest(canny_image)
             # detecting_contour(cropped_image, frame)
             
             # lines = detect_line_segments(cropped_image)
@@ -344,8 +344,8 @@ def test_video(video_file):
             final_image, curr_angle = steer(lane_lines_image, averaged_lines, curr_angle)
             print(curr_angle)
             # transfer_data(curr_angle)
-            cv2.imshow("result", hsv)
-            cv2.imshow("result3", canny_image)
+            # cv2.imshow("result", hsv)
+            cv2.imshow("result3", cropped_image)
             # cv2.imshow("result2", final_image)
             if cv2.waitKey(10) & 0xFF == ord('q'):
                 break
@@ -382,10 +382,12 @@ def test_photo(photo_file):
 
     # cv2.imshow("Original image", lane_image)
     # cv2.imshow("hsv image", hsv)
-    # cv2.imshow("Canny image", canny_image)
-    # cv2.imshow("final image", final_image)
+    cv2.imshow("Canny image", canny_image)
+    cv2.imshow("Original image", image_re)
+    cv2.imshow("final image", final_image)
 
-    plt.imshow(cv2.cvtColor(image, cv2.COLOR_BGR2RGB))
+    # plt.imshow(image_re)
+    plt.imshow(cv2.cvtColor(image_re, cv2.COLOR_BGR2RGB))
     plt.show()
 
     cv2.waitKey(0)
@@ -412,4 +414,5 @@ def test_photo(photo_file):
 # test_video('red_lane_electrictape.mp4')
 # test_video('red_lane_phcam.mp4')
 # test_video('blue_lane.mp4')
-test_photo('blue_lane.jpg')
+# test_photo('blue_lane.jpg')
+test_video('/home/kan/Videos/SpeedLimitTestSuccess2.m4v')
