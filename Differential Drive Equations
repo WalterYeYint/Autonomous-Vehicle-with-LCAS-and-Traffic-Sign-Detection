@@ -1,0 +1,22 @@
+##Differential Drive Equations
+
+V_x         = Linear velocity of robot
+w           = rotational/angular velocity of the robot 
+V_r, V_l    = linear velicities of each wheel
+v_r, v_l    = angular velocities of wheels (in rad/s)
+
+v_r * R = V_r
+
+V_x = R(v_r + v_l) / 2
+
+
+#Same with the commented eq's w below taken from the one where R is used as ICC
+#(Already proven in mind)
+# w = (V_r - V_l) / 2d
+w = R(v_r - v_l) / L        
+
+v_r = (2V_x + w*L) / 2R
+v_l = (2V_x - w*L) / 2R
+
+V_r = V_x + w*L/2
+V_l = V_x - w*L/2
