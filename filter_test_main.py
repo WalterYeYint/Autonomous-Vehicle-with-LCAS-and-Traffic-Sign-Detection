@@ -119,30 +119,47 @@ def find_contours(image, lane_image):
         box = np.array(box).reshape((-1,1,2)).astype(np.int32)
         # box = np.int0([x,y,w,h])
 
-        cv2.drawContours(lane_image, [box], -1, (0, 0, 255), 3)  
-        # cv2.rectangle(lane_image, (x, y), (x + w, y + h), (0, 255,0), 2)
-        # center = (x,y)
+    #     cv2.drawContours(lane_image, [box], -1, (0, 0, 255), 3)  
+    #     # cv2.rectangle(lane_image, (x, y), (x + w, y + h), (0, 255,0), 2)
+    #     # center = (x,y)
         
-    cv2.imshow('test',lane_image)
+    # cv2.imshow('test',lane_image)
     return box_dim
 
-def sort_contours(box_dim, frame):
+def calc_midpoints(box_dim, frame):
+    box_center = []
+    for box in box_dim:
+        moment = cv2.moments(box)
+        if (moment["m00"] != 0):
+            # Get the center x.
+            cx = int(moment["m10"]/moment["m00"])
+            # Get the center y.
+            cy = int(moment["m01"]/moment["m00"])
+        else:
+            cx, cy = 0, 0
+        box_center.append([cx, cy])
+        cv2.circle(frame, (cx, cy), 5, (0, 0, 255), 3)
+        box = np.array(box).reshape((-1,1,2)).astype(np.int32)          #This line is needed to drawContours the box
+        cv2.drawContours(frame, [box], -1, (0, 0, 255), 3) 
+    # print(box_center)
+    cv2.imshow('test',frame)
+    return box_center
+
+def sort_contours(box_center, frame):
     left_box = []
     right_box = []
     height, width, _ = frame.shape
-    for p in box_dim:
-        p1,p2,p3,p4 = p
-        print(p1[1],p2[1],p3[1],p4[1])
-        if(p1[0] <= width/2):
-            left_box.append(p)
-        elif(p1[0] > width/2):
-            right_box.append(p)
+    for cx, cy in box_center:
+        print(cx, cy)
+        if(cx <= width/2):
+            left_box.append([cx, cy])
+        elif(cx > width/2):
+            right_box.append([cx, cy])
     print("Left box=")
     print(left_box)
     print("Right box=")
     print(right_box)
     return left_box, right_box
-
 
 
 def detect_line_segments(cropped_edges):
@@ -418,7 +435,8 @@ def test_photo(photo_file):
     cropped_image = region_of_interest(canny_image)
     box_dim = find_contours(canny_image, lane_image)
     # print(box_dim)
-    sort_contours(box_dim, lane_image)
+    box_center = calc_midpoints(box_dim, lane_image)
+    sort_contours(box_center, lane_image)
 
     # cropped_image = region_of_interest(canny_image)
     # detecting_contour(cropped_image, lane_image)
