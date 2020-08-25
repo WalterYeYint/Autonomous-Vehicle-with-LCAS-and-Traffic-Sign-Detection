@@ -52,7 +52,7 @@ def detecting_edges(img):
     # mask_2 = cv2.inRange(hsv, lower_red_2, upper_red_2)
     # mask = cv2.bitwise_or(mask, mask_2)
 
-    lower_blue = np.array([90, 100, 0])
+    lower_blue = np.array([80, 100, 0])
     upper_blue = np.array([140, 255, 255])
     mask = cv2.inRange(hsv, lower_blue, upper_blue)
 
@@ -104,9 +104,9 @@ def region_of_interest(canny):
     return masked_image
 
 
-def find_main_countour(image, lane_image):
+def find_contours(image, lane_image):
     contours, hierarchy = cv2.findContours(image, cv2.RETR_CCOMP, cv2.CHAIN_APPROX_SIMPLE)
-
+    box_dim = []
     for c in contours:
         # if cv2.contourArea(c) <= 50 :
         #     continue    
@@ -114,48 +114,35 @@ def find_main_countour(image, lane_image):
 
         rect = cv2.minAreaRect(c)
         box = cv2.boxPoints(rect)
+        box_dim.append(box)
+        # print (box)
         box = np.array(box).reshape((-1,1,2)).astype(np.int32)
         # box = np.int0([x,y,w,h])
 
-        cv2.drawContours(lane_image, contours, -1, (0, 0, 255), 3)  
+        cv2.drawContours(lane_image, [box], -1, (0, 0, 255), 3)  
         # cv2.rectangle(lane_image, (x, y), (x + w, y + h), (0, 255,0), 2)
         # center = (x,y)
-        # print (box)
+        
     cv2.imshow('test',lane_image)
+    return box_dim
 
+def sort_contours(box_dim, frame):
+    left_box = []
+    right_box = []
+    height, width, _ = frame.shape
+    for p in box_dim:
+        p1,p2,p3,p4 = p
+        print(p1[1],p2[1],p3[1],p4[1])
+        if(p1[0] <= width/2):
+            left_box.append(p)
+        elif(p1[0] > width/2):
+            right_box.append(p)
+    print("Left box=")
+    print(left_box)
+    print("Right box=")
+    print(right_box)
+    return left_box, right_box
 
-
-    # for cnt in contours : 
-  
-    #     approx = cv2.approxPolyDP(cnt, 0.009 * cv2.arcLength(cnt, True), True) 
-    
-    #     # draws boundary of contours. 
-    #     cv2.drawContours(lane_image, [approx], 0, (0, 0, 255), 5)  
-    #     # Used to flatted the array containing 
-    #     # the co-ordinates of the vertices. 
-    #     n = approx.ravel()  
-    #     i = 0
-    
-    #     for j in contours : 
-    #             if(i % 2 == 0): 
-    #                 x = n[i] 
-    #                 y = n[i + 1] 
-        
-    #                 # String containing the co-ordinates. 
-    #                 string = str(x) + " " + str(y)  
-        
-    #                 if(i == 0): 
-    #                     # text on topmost co-ordinate. 
-    #                     cv2.putText(lane_image, "Arrow tip", (x, y), 
-    #                                     cv2.FONT_HERSHEY_COMPLEX, 0.5, (255, 0, 0))  
-    #                     print("Tip:",(x, y))
-    #                 else: 
-    #                     # text on remaining co-ordinates. 
-    #                     cv2.putText(lane_image, string, (x, y),  
-    #                             cv2.FONT_HERSHEY_COMPLEX, 0.5, (0, 255, 0))
-    #                     print("Others:",(x, y))  
-    #             i = i + 1
-    # cv2.imshow('test',lane_image)
 
 
 def detect_line_segments(cropped_edges):
@@ -392,7 +379,7 @@ def test_video(video_file):
             hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
             canny_image = detecting_edges(frame)
             cropped_image = region_of_interest(canny_image)
-            find_main_countour(cropped_image, frame)
+            find_contours(cropped_image, frame)
             # detecting_contour(cropped_image, frame)
             
             # lines = detect_line_segments(cropped_image)
@@ -429,7 +416,9 @@ def test_photo(photo_file):
     hsv = cv2.cvtColor(lane_image, cv2.COLOR_BGR2HSV)
     canny_image = detecting_edges(lane_image)
     cropped_image = region_of_interest(canny_image)
-    find_main_countour(canny_image, lane_image)
+    box_dim = find_contours(canny_image, lane_image)
+    # print(box_dim)
+    sort_contours(box_dim, lane_image)
 
     # cropped_image = region_of_interest(canny_image)
     # detecting_contour(cropped_image, lane_image)
@@ -476,9 +465,9 @@ def test_photo(photo_file):
 # test_photo('Drawing.jpeg')
 # test_photo('autodraw 8_25_2020.png')
 # test_video('/home/kan/Videos/SpeedLimitTestSuccess2.m4v')
-# test_photo('blue_lane.jpg')
+test_photo('blue_lane.jpg')
 # test_photo('blue_lane_2.jpg')
 # test_photo('blue_lane_3.jpg')
 # test_photo('blue_lane_4.jpg')
 # test_photo('blue_lane_5.jpg')
-test_video('Curved_lane.mp4')
+# test_video('Curved_lane.mp4')
