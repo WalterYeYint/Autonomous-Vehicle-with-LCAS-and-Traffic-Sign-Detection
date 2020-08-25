@@ -103,6 +103,61 @@ def region_of_interest(canny):
     masked_image = cv2.bitwise_and(canny, mask)
     return masked_image
 
+
+def find_main_countour(image, lane_image):
+    contours, hierarchy = cv2.findContours(image, cv2.RETR_CCOMP, cv2.CHAIN_APPROX_SIMPLE)
+
+    for c in contours:
+        # if cv2.contourArea(c) <= 50 :
+        #     continue    
+        # x,y,w,h = cv2.boundingRect(c)
+
+        rect = cv2.minAreaRect(c)
+        box = cv2.boxPoints(rect)
+        box = np.array(box).reshape((-1,1,2)).astype(np.int32)
+        # box = np.int0([x,y,w,h])
+
+        cv2.drawContours(lane_image, [box], -1, (0, 0, 255), 3)  
+        # cv2.rectangle(lane_image, (x, y), (x + w, y + h), (0, 255,0), 2)
+        # center = (x,y)
+        print (box)
+    cv2.imshow('test',lane_image)
+
+
+
+    # for cnt in contours : 
+  
+    #     approx = cv2.approxPolyDP(cnt, 0.009 * cv2.arcLength(cnt, True), True) 
+    
+    #     # draws boundary of contours. 
+    #     cv2.drawContours(lane_image, [approx], 0, (0, 0, 255), 5)  
+    #     # Used to flatted the array containing 
+    #     # the co-ordinates of the vertices. 
+    #     n = approx.ravel()  
+    #     i = 0
+    
+    #     for j in contours : 
+    #             if(i % 2 == 0): 
+    #                 x = n[i] 
+    #                 y = n[i + 1] 
+        
+    #                 # String containing the co-ordinates. 
+    #                 string = str(x) + " " + str(y)  
+        
+    #                 if(i == 0): 
+    #                     # text on topmost co-ordinate. 
+    #                     cv2.putText(lane_image, "Arrow tip", (x, y), 
+    #                                     cv2.FONT_HERSHEY_COMPLEX, 0.5, (255, 0, 0))  
+    #                     print("Tip:",(x, y))
+    #                 else: 
+    #                     # text on remaining co-ordinates. 
+    #                     cv2.putText(lane_image, string, (x, y),  
+    #                             cv2.FONT_HERSHEY_COMPLEX, 0.5, (0, 255, 0))
+    #                     print("Others:",(x, y))  
+    #             i = i + 1
+    # cv2.imshow('test',lane_image)
+
+
 def detect_line_segments(cropped_edges):
     # tuning min_threshold, minLineLength, maxLineGap is a trial and error process by hand
     rho = 1  # precision in pixel, i.e. 1 pixel
@@ -372,7 +427,9 @@ def test_photo(photo_file):
     #For testing bit by bit
     hsv = cv2.cvtColor(lane_image, cv2.COLOR_BGR2HSV)
     canny_image = detecting_edges(lane_image)
-    
+    cropped_image = region_of_interest(canny_image)
+    find_main_countour(cropped_image, lane_image)
+
     # cropped_image = region_of_interest(canny_image)
     # detecting_contour(cropped_image, lane_image)
     #canny_image = detecting_edges_grayscale(lane_image)
@@ -382,11 +439,11 @@ def test_photo(photo_file):
 
     # cv2.imshow("Original image", lane_image)
     # cv2.imshow("hsv image", hsv)
-    cv2.imshow("Canny image", canny_image)
-    cv2.imshow("Original image", image_re)
-    cv2.imshow("final image", final_image)
+    cv2.imshow("Canny image", cropped_image)
+    # cv2.imshow("Original image", image_re)
+    # cv2.imshow("final image", final_image)
 
-    # plt.imshow(image_re)
+    plt.imshow(image_re)
     plt.imshow(cv2.cvtColor(image_re, cv2.COLOR_BGR2RGB))
     plt.show()
 
@@ -416,4 +473,5 @@ def test_photo(photo_file):
 # test_video('blue_lane.mp4')
 # test_photo('Drawing.jpeg')
 # test_photo('autodraw 8_25_2020.png')
-test_video('/home/kan/Videos/SpeedLimitTestSuccess2.m4v')
+# test_video('/home/kan/Videos/SpeedLimitTestSuccess2.m4v')
+test_photo('blue_lane.jpg')
