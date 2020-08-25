@@ -52,8 +52,8 @@ def detecting_edges(img):
     # mask_2 = cv2.inRange(hsv, lower_red_2, upper_red_2)
     # mask = cv2.bitwise_or(mask, mask_2)
 
-    lower_blue = np.array([80, 40, 0])
-    upper_blue = np.array([140, 255, 140])
+    lower_blue = np.array([90, 100, 0])
+    upper_blue = np.array([140, 255, 255])
     mask = cv2.inRange(hsv, lower_blue, upper_blue)
 
     # #Convert to grayscale then dilate and erode
@@ -81,7 +81,7 @@ def detecting_edges(img):
     # Canny(img, lower_threshold, upper_threshold)
     #Draws edge if beyond upper_threshold, not if below lower_threshold, draws only if edge is connected to strong edge if between
     canny = cv2.Canny(mask, 50, 150)
-    return canny
+    return mask
 
 def region_of_interest(canny):
     height = canny.shape[0]
@@ -117,10 +117,10 @@ def find_main_countour(image, lane_image):
         box = np.array(box).reshape((-1,1,2)).astype(np.int32)
         # box = np.int0([x,y,w,h])
 
-        cv2.drawContours(lane_image, [box], -1, (0, 0, 255), 3)  
+        cv2.drawContours(lane_image, contours, -1, (0, 0, 255), 3)  
         # cv2.rectangle(lane_image, (x, y), (x + w, y + h), (0, 255,0), 2)
         # center = (x,y)
-        print (box)
+        # print (box)
     cv2.imshow('test',lane_image)
 
 
@@ -392,16 +392,17 @@ def test_video(video_file):
             hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
             canny_image = detecting_edges(frame)
             cropped_image = region_of_interest(canny_image)
+            find_main_countour(cropped_image, frame)
             # detecting_contour(cropped_image, frame)
             
             # lines = detect_line_segments(cropped_image)
             # averaged_lines = average_slope_intercept_middle_line(frame, lines)
             final_image, curr_angle = steer(lane_lines_image, averaged_lines, curr_angle)
-            print(curr_angle)
+            # print(curr_angle)
             # transfer_data(curr_angle)
             # cv2.imshow("result", hsv)
-            # cv2.imshow("result3", cropped_image)
-            cv2.imshow("result2", final_image)
+            cv2.imshow("result3", cropped_image)
+            # cv2.imshow("result2", final_image)
             if cv2.waitKey(10) & 0xFF == ord('q'):
                 break
         else:
@@ -428,7 +429,7 @@ def test_photo(photo_file):
     hsv = cv2.cvtColor(lane_image, cv2.COLOR_BGR2HSV)
     canny_image = detecting_edges(lane_image)
     cropped_image = region_of_interest(canny_image)
-    find_main_countour(cropped_image, lane_image)
+    find_main_countour(canny_image, lane_image)
 
     # cropped_image = region_of_interest(canny_image)
     # detecting_contour(cropped_image, lane_image)
@@ -438,14 +439,15 @@ def test_photo(photo_file):
     final_image, curr_angle = steer(lane_lines_image, averaged_lines, curr_angle)
 
     # cv2.imshow("Original image", lane_image)
-    # cv2.imshow("hsv image", hsv)
-    cv2.imshow("Canny image", cropped_image)
+    cv2.imshow("hsv image", hsv)
+    # cv2.imshow("test", hsv[:,:,2])
+    cv2.imshow("Canny image", canny_image)
     # cv2.imshow("Original image", image_re)
     # cv2.imshow("final image", final_image)
 
-    plt.imshow(image_re)
-    plt.imshow(cv2.cvtColor(image_re, cv2.COLOR_BGR2RGB))
-    plt.show()
+    # plt.imshow(image_re)
+    # plt.imshow(cv2.cvtColor(image_re, cv2.COLOR_BGR2RGB))
+    # plt.show()
 
     cv2.waitKey(0)
 
@@ -474,4 +476,9 @@ def test_photo(photo_file):
 # test_photo('Drawing.jpeg')
 # test_photo('autodraw 8_25_2020.png')
 # test_video('/home/kan/Videos/SpeedLimitTestSuccess2.m4v')
-test_photo('blue_lane.jpg')
+# test_photo('blue_lane.jpg')
+# test_photo('blue_lane_2.jpg')
+# test_photo('blue_lane_3.jpg')
+# test_photo('blue_lane_4.jpg')
+# test_photo('blue_lane_5.jpg')
+test_video('Curved_lane.mp4')
