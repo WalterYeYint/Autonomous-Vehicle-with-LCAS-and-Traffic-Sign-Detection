@@ -1,22 +1,27 @@
+#testing the lane detection using images
+
 import cv2
 import numpy as np
-import matplotlib.pyplot as plt
+import logging
 import math
-from threading import Thread
+import datetime
+import sys
+import time
+from Camera import PiVideoStream
 
 import serial
 import time
 
-#define serial variable for communication
-# ser = serial.Serial('/dev/ttyACM0', 9600)
+# define serial variable for communication
+ser = serial.Serial('/dev/ttyACM0', 9600)
+time.sleep(2)   #Important: wait for serial at least 5 secs, otherwise false data
 
-# time.sleep(7)   #Important: wait for serial at least 5 secs, otherwise false data
 
 ####################################################################################
 # Function for transferring data from Pi to Arduino
 ####################################################################################
-def transfer_data(offset):
-    ser.write(b'%f\t%f\t%f\t%f\t' % (float(offset), 10, 20, 30))
+def transfer_data(offset, traffic_class):
+    ser.write(b'%f\t%f\t%f\t%f\t' % (float(offset), float(traffic_class), 10, 10))
 
 def detecting_contour(img, frame):
     contours_blk, hierarchy_blk = cv2.findContours(img.copy(),cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
@@ -38,8 +43,8 @@ def detecting_edges(img):
     hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
     # cv2.imshow("hsv image", hsv)
 
-    # lower_white = np.array([80, 0, 100])
-    # upper_white = np.array([110, 50, 255])
+    # lower_white = np.array([80, 0, 240])
+    # upper_white = np.array([110, 200, 255])
     # mask = cv2.inRange(hsv, lower_white, upper_white)
 
     # lower_red = np.array([150, 50, 80])
@@ -52,8 +57,8 @@ def detecting_edges(img):
     # mask_2 = cv2.inRange(hsv, lower_red_2, upper_red_2)
     # mask = cv2.bitwise_or(mask, mask_2)
 
-    lower_blue = np.array([80, 100, 0])
-    upper_blue = np.array([140, 255, 255])
+    lower_blue = np.array([80, 40, 0])
+    upper_blue = np.array([140, 255, 140])
     mask = cv2.inRange(hsv, lower_blue, upper_blue)
 
     # #Convert to grayscale then dilate and erode
@@ -81,7 +86,7 @@ def detecting_edges(img):
     # Canny(img, lower_threshold, upper_threshold)
     #Draws edge if beyond upper_threshold, not if below lower_threshold, draws only if edge is connected to strong edge if between
     canny = cv2.Canny(mask, 50, 150)
-    return mask
+    return canny
 
 def region_of_interest(canny):
     height = canny.shape[0]
@@ -103,266 +108,279 @@ def region_of_interest(canny):
     masked_image = cv2.bitwise_and(canny, mask)
     return masked_image
 
+def detect_line_segments(cropped_edges):
+    # tuning min_threshold, minLineLength, maxLineGap is a trial and error process by hand
+    rho = 1  # precision in pixel, i.e. 1 pixel
+    angle = np.pi / 180  # degree in radian, i.e. 1 degree
+    min_threshold = 30  # minimal of votes
+    line_segments = cv2.HoughLinesP(cropped_edges, rho, angle, min_threshold, np.array([]), minLineLength=8,
+                                    maxLineGap=4)
+    return line_segments
 
-def find_contours(image, lane_image):
-    contours, hierarchy = cv2.findContours(image, cv2.RETR_CCOMP, cv2.CHAIN_APPROX_SIMPLE)
-    box_dim = []
-    for c in contours:
-        # if cv2.contourArea(c) <= 50 :
-        #     continue    
-        # x,y,w,h = cv2.boundingRect(c)
+def average_slope_intercept(frame, line_segments):
+    lane_lines = []
+    if line_segments is None:
+        #logging.info('No line_segment segments detected')
+        return lane_lines
 
-        rect = cv2.minAreaRect(c)
-        box = cv2.boxPoints(rect)
-        box_dim.append(box)
-        # print (box)
-        box = np.array(box).reshape((-1,1,2)).astype(np.int32)
-        # box = np.int0([x,y,w,h])
-
-    #     cv2.drawContours(lane_image, [box], -1, (0, 0, 255), 3)  
-    #     # cv2.rectangle(lane_image, (x, y), (x + w, y + h), (0, 255,0), 2)
-    #     # center = (x,y)
-        
-    # cv2.imshow('test',lane_image)
-    return box_dim
-
-def sort_contours(box_dim, frame):
-    left_box = []
-    right_box = []
     height, width, _ = frame.shape
-    for p in box_dim:
-        p1,p2,p3,p4 = p
-        # print(p1[1],p2[1],p3[1],p4[1])
-        if(p1[0] <= width/2):
-            left_box.append(p)
-        elif(p1[0] > width/2):
-            right_box.append(p)
-    
-    # print("Left box=")
-    # print(left_box)
-    # print("Right box=")
-    # print(right_box)
+    left_fit = []
+    right_fit = []
 
-    
-    # left_box = np.array(left_box).reshape((-1,1,2)).astype(np.int32)          #This line is needed to drawContours the box
-    # right_box = np.array(right_box).reshape((-1,1,2)).astype(np.int32)          #This line is needed to drawContours the box
-    # cv2.drawContours(frame, [left_box], -1, (0, 0, 255), 3) 
-    # cv2.drawContours(frame, [right_box], -1, (0, 0, 255), 3) 
+    boundary = 1/3
+    left_region_boundary = width * (1 - boundary)  # left lane line segment should be on left 2/3 of the screen
+    right_region_boundary = width * boundary # right lane line segment should be on left 2/3 of the screen
 
-    if(len(left_box) > 0):
-        left_box = max(left_box, key = cv2.contourArea)
-        left_box = np.array(left_box).reshape((-1,1,2)).astype(np.int32)            #This line is needed to drawContours the box
-        # cv2.drawContours(frame, [left_box], -1, (0, 0, 255), 3) 
-    if(len(right_box) > 0):
-        right_box = max(right_box, key = cv2.contourArea)
-        right_box = np.array(right_box).reshape((-1,1,2)).astype(np.int32)          #This line is needed to drawContours the box
-    #     cv2.drawContours(frame, [right_box], -1, (0, 0, 255), 3) 
-    # cv2.imshow('test',frame)
-    
+    for line_segment in line_segments:
+        for x1, y1, x2, y2 in line_segment:
+            if x1 == x2:
+                #logging.info('skipping vertical line segment (slope=inf): %s' % line_segment)
+                continue
+            fit = np.polyfit((x1, x2), (y1, y2), 1)
+            slope = fit[0]
+            intercept = fit[1]
+            if slope < 0:
+                if x1 < left_region_boundary and x2 < left_region_boundary:
+                    left_fit.append((slope, intercept))
+            else:
+                if x1 > right_region_boundary and x2 > right_region_boundary:
+                    right_fit.append((slope, intercept))
 
-    # print("Left box=")
-    # print(left_box)
-    # print("Right box=")
-    # print(right_box)
+    left_fit_average = np.average(left_fit, axis=0)
+    if len(left_fit) > 0:
+        lane_lines.append(make_coordinates(frame, left_fit_average))
 
-    
-    return left_box, right_box
+    right_fit_average = np.average(right_fit, axis=0)
+    if len(right_fit) > 0:
+        lane_lines.append(make_coordinates(frame, right_fit_average))
 
-def calc_midpoints(left_box, right_box, frame):
+    #logging.debug('lane lines: %s' % lane_lines)  # [[[316, 720, 484, 432]], [[1009, 720, 718, 432]]]
+
+    return lane_lines
+
+def average_slope_intercept_middle_line(frame, line_segments):
+    lane_lines = []
+    if line_segments is None:
+        #logging.info('No line_segment segments detected')
+        return lane_lines
+
+    height, width, _ = frame.shape
+    middle_fit = []
+
+    boundary = 1/3
+
+    for line_segment in line_segments:
+        for x1, y1, x2, y2 in line_segment:
+            if x1 == x2:
+                #logging.info('skipping vertical line segment (slope=inf): %s' % line_segment)
+                continue  
+            fit = np.polyfit((x1, x2), (y1, y2), 1)
+            slope = fit[0]
+            intercept = fit[1]
+            middle_fit.append((slope, intercept))
+
+    middle_fit_average = np.average(middle_fit, axis=0)
+    if len(middle_fit) > 0:
+        lane_lines.append(make_coordinates(frame, middle_fit_average))
+
+    #logging.debug('lane lines: %s' % lane_lines)  # [[[316, 720, 484, 432]], [[1009, 720, 718, 432]]]
+
+    return lane_lines
+
+def make_coordinates(image, line_parameters):
+    height, width, _ = image.shape
+    if isinstance(line_parameters, np.float64):
+        slope = 0.0001
+        intercept = 0.00
+    else:
+        slope, intercept = line_parameters
+    if slope == 0:      #This condition added to remove overflow error(divide by zero)
+        slope = 0.0001
+        intercept = 0.00
+    y1 = height  # bottom of the frame
+    y2 = int(y1 * 1 / 2)  # make points from middle of the frame down
+
+    # bound the coordinates within the frame
+    x1 = max(-width, min(2 * width, int((y1 - intercept) / slope)))
+    x2 = max(-width, min(2 * width, int((y2 - intercept) / slope)))
+    return [[x1, y1, x2, y2]]
+
+
+
+def detect_lane(lane_image):
+    canny_image = detecting_edges(lane_image)
+    cropped_image = region_of_interest(canny_image)
+    lines = detect_line_segments(cropped_image)
+    averaged_lines = average_slope_intercept(lane_image, lines)
+    lane_lines_image = display_lines(lane_image, averaged_lines)
+    return averaged_lines, lane_lines_image
+
+def calculate_offset(frame, line_segments):
+    contours_blk, hierarchy_blk = cv2.findContours(Blackline.copy(),cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
+
+    if len(contours_blk) > 0:    
+        blackbox = cv2.minAreaRect(contours_blk[0])
+        (x_min, y_min), (w_min, h_min), ang = blackbox
+
+def steer(frame, lane_lines, curr_steering_angle):
+        if len(lane_lines) == 0:
+            # logging.error('No lane lines detected, nothing to do.')
+            return frame , curr_steering_angle
+
+        new_steering_angle = compute_steering_angle(frame, lane_lines)
+        curr_steering_angle = stabilize_steering_angle(curr_steering_angle, new_steering_angle, len(lane_lines))
+        cv2.putText(frame,'STA: {0:.2f}'.format(curr_steering_angle),(30,50),cv2.FONT_HERSHEY_SIMPLEX,1,(255,255,0),2,cv2.LINE_AA)
+        curr_heading_image = display_heading_line(frame, curr_steering_angle)
+        #cv2.imshow("heading", curr_heading_image)
+
+        return curr_heading_image, curr_steering_angle
+
+def compute_steering_angle(frame, lane_lines):
+    """ Find the steering angle based on lane line coordinate
+        We assume that camera is calibrated to point to dead center
+    """
+    if len(lane_lines) == 0:
+        logging.info('No lane lines detected, do nothing')
+        return -90
+
+    height, width, _ = frame.shape
+    if len(lane_lines) == 1:
+        x1, _, x2, _ = lane_lines[0][0]
+        x_offset = x2 - x1
+    else:
+        _, _, left_x2, _ = lane_lines[0][0]
+        _, _, right_x2, _ = lane_lines[1][0]
+        # camera_mid_offset_percent = 0.02 # 0.0 means car pointing to center, -0.03: car is centered to left, +0.03 means car pointing to right
+        camera_mid_offset_percent = 0.00
+        mid = int(width / 2 * (1 + camera_mid_offset_percent))
+        x_offset = (left_x2 + right_x2) / 2 - mid
+
+    # find the steering angle, which is angle between navigation direction to end of center line
+    y_offset = int(height / 2)
+
+    angle_to_mid_radian = math.atan(x_offset / y_offset)  # angle (in radian) to center vertical line
+    angle_to_mid_deg = int(angle_to_mid_radian * 180.0 / math.pi)  # angle (in degrees) to center vertical line
+    steering_angle = angle_to_mid_deg + 90  # this is the steering angle needed by picar front wheel
+
+    return steering_angle
+
+
+def stabilize_steering_angle(curr_steering_angle, new_steering_angle, num_of_lane_lines, max_angle_deviation_two_lines=3, max_angle_deviation_one_lane=3):
+    """
+    Using last steering angle to stabilize the steering angle
+    This can be improved to use last N angles, etc
+    if new angle is too different from current angle, only turn by max_angle_deviation degrees
+    """
+    if num_of_lane_lines == 2 :
+        # if both lane lines detected, then we can deviate more
+        max_angle_deviation = max_angle_deviation_two_lines
+    else :
+        # if only one lane detected, don't deviate too much
+        max_angle_deviation = max_angle_deviation_one_lane
+
+    angle_deviation = new_steering_angle - curr_steering_angle
+    if abs(angle_deviation) > max_angle_deviation:
+        stabilized_steering_angle = int(curr_steering_angle
+                                        + max_angle_deviation * angle_deviation / abs(angle_deviation))
+    else:
+        stabilized_steering_angle = new_steering_angle
+    return stabilized_steering_angle
+
+
+############################
+# Utility Functions
+############################
+def display_lines(frame, lines, line_color=(0, 255, 0), line_width=10):
+    line_image = np.zeros_like(frame)
+    if lines is not None:
+        for line in lines:
+            for x1, y1, x2, y2 in line:
+                cv2.line(line_image, (x1, y1), (x2, y2), line_color, line_width)
+    line_image = cv2.addWeighted(frame, 0.8, line_image, 1, 1)
+    return line_image
+
+
+def display_heading_line(frame, steering_angle, line_color=(0, 0, 255), line_width=5, ):
+    heading_image = np.zeros_like(frame)
     height, width, _ = frame.shape
 
-    if(len(left_box) > 0):
-        left_moment = cv2.moments(left_box)
-        if (left_moment["m00"] != 0):
-            # Get the center x.
-            left_cx = int(left_moment["m10"]/left_moment["m00"])
-            # Get the center y.
-            left_cy = int(left_moment["m01"]/left_moment["m00"])
-        else:
-            left_cx, left_cy = 0, 0
+    # figure out the heading line from steering angle
+    # heading line (x1,y1) is always center bottom of the screen
+    # (x2, y2) requires a bit of trigonometry
 
-    if(len(right_box) > 0):
-        right_moment = cv2.moments(right_box)
-        if (right_moment["m00"] != 0):
-            # Get the center x.
-            right_cx = int(right_moment["m10"]/right_moment["m00"])
-            # Get the center y.
-            right_cy = int(right_moment["m01"]/right_moment["m00"])
-        else:
-            right_cx, right_cy = width, 0
-    
-    if(len(left_box) == 0):
-        left_cx, left_cy = 0, right_cy
-    elif(len(right_box) == 0):
-        right_cx, right_cy = width, left_cy
+    # Note: the steering angle of:
+    # 0-89 degree: turn left
+    # 90 degree: going straight
+    # 91-180 degree: turn right
+    steering_angle_radian = steering_angle / 180.0 * math.pi
+    x1 = int(width / 2)
+    y1 = height
+    x2 = int(x1 - height / 2 / math.tan(steering_angle_radian))
+    y2 = int(height / 2)
 
-    # cv2.circle(frame, (left_cx, left_cy), 5, (0, 0, 255), 3)
-    # cv2.circle(frame, (right_cx, right_cy), 5, (0, 0, 255), 3)
+    cv2.line(heading_image, (x1, y1), (x2, y2), line_color, line_width)
+    heading_image = cv2.addWeighted(frame, 0.8, heading_image, 1, 1)
 
-    # if(len(left_box) > 0):           #This line is needed to drawContours the box
-    #     cv2.drawContours(frame, [left_box], -1, (0, 0, 255), 3) 
-    # if(len(right_box) > 0):         #This line is needed to drawContours the box
-    #     cv2.drawContours(frame, [right_box], -1, (0, 0, 255), 3) 
+    return heading_image
 
-    # print(left_cx, left_cy)
-    # print(right_cx, right_cy)
-
-    center_pt = int((left_cx + right_cx)/2)
-    # cv2.circle(frame, (center_pt, right_cy), 5, (0, 0, 255), 3)
-    
-    # cv2.line(frame, (int(width/2), height), (int(width/2), 0), (0, 255, 0), 3)
-    # print(height)
-
-    # cv2.imshow('test',frame)
-
-    return center_pt, left_cx, left_cy, right_cx, right_cy
-
-def calc_offset(center_pt, frame):
-    height, width, _ = frame.shape
-    offset = (center_pt - (width/2)) / 
-    return offset
-
-def test_video(video_file):
-# def test_video():
-    curr_angle = 90
-    cap = cv2.VideoCapture(video_file)
-    # cap = cv2.VideoCapture('red_lane.mp4')
-    while(cap.isOpened()):
-        ret, frame = cap.read()
-        if ret == True:
-            # contour_image = detecting_contour(frame)
-            # averaged_lines, lane_lines_image = detect_lane(frame)
-            hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
-            canny_image = detecting_edges(frame)
-            cropped_image = region_of_interest(canny_image)
-            box_dim = find_contours(cropped_image, frame)
-            # print(box_dim)
-            # box_center = calc_midpoints(box_dim, frame)
-            left_box, right_box = sort_contours(box_dim, frame)
-            center_pt, left_cx, left_cy, right_cx, right_cy = calc_midpoints(left_box, right_box, frame)
-            offset = calc_offset(center_pt, frame)
-            
-            #displaying data on image
-            height, width, _ = frame.shape
-            cv2.circle(frame, (left_cx, left_cy), 5, (0, 0, 255), 3)
-            cv2.circle(frame, (right_cx, right_cy), 5, (0, 0, 255), 3)
-
-            if(len(left_box) > 0):           #This line is needed to drawContours the box
-                cv2.drawContours(frame, [left_box], -1, (0, 0, 255), 3) 
-            if(len(right_box) > 0):         #This line is needed to drawContours the box
-                cv2.drawContours(frame, [right_box], -1, (0, 0, 255), 3) 
-            
-            cv2.circle(frame, (center_pt, right_cy), 5, (0, 0, 255), 3)
-            cv2.line(frame, (int(width/2), height), (int(width/2), 0), (0, 255, 0), 3)
-            cv2.putText(frame,'STA: {0:.2f}'.format(offset),(30,50),cv2.FONT_HERSHEY_SIMPLEX,1,(255,255,0),2,cv2.LINE_AA)
-
-            cv2.imshow('test',frame)
-
-
-
-            # lines = detect_line_segments(cropped_image)
-            # averaged_lines = average_slope_intercept_middle_line(frame, lines)
-            # final_image, curr_angle = steer(lane_lines_image, averaged_lines, curr_angle)
-            # print(curr_angle)
-            # transfer_data(curr_angle)
-            # cv2.imshow("result", hsv)
-            cv2.imshow("result3", cropped_image)
-            # cv2.imshow("result2", final_image)
-            if cv2.waitKey(10) & 0xFF == ord('q'):
-                break
-        else:
-            break
-    cap.release()
+############################
+# Test Functions
+############################
+def test_photo(file):
+    lane_follower = HandCodedLaneFollower()
+    frame_1 = cv2.imread(file)
+    #frame_flipped = cv2.flip(frame_1, -1)
+    frame = cv2.resize(frame_flipped, (960, 721))
+    combo_image = lane_follower.follow_lane(frame)
+    show_image('final', combo_image, True)
+    cv2.waitKey(0)
     cv2.destroyAllWindows()
 
 
-def test_photo(photo_file):
+def video_live():
     curr_angle = 90
-    #image = cv2.imread('test_lane.jpeg')
-    image = cv2.imread(photo_file)
-    # image_re = cv2.resize(image, (960, 721))
-    image_re = cv2.resize(image, (320, 240))
-    frame = np.copy(image_re)
+    data = 9
+    image = PiVideoStream((320, 240), 32).start_camera_thread()
+    image.start_second_thread()
+    image.start_third_thread()
 
-    # lane_lines_image = detect_lane(lane_image)
-    # cv2.imshow("lane lines", lane_lines_image)
-    # cv2.waitKey(0)
+    # allow the camera to warmup
+    time.sleep(8)
+    # capture frames from the camera
+    while True:
+        frame = image.read()
+        # hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
+        # canny_image = detecting_edges(frame)
+        averaged_lines, lane_lines_image = detect_lane(frame)
 
+        # insert FPS
+        # cv2.putText(combo_image,'FPS: {0:.2f}'.format(frame_rate_calc),(30,50),cv2.FONT_HERSHEY_SIMPLEX,1,(255,255,0),2,cv2.LINE_AA)
 
-    ######################################################################################
-    #For testing bit by bit
-    hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
-    canny_image = detecting_edges(frame)
-    cropped_image = region_of_interest(canny_image)
-    box_dim = find_contours(cropped_image, frame)
-    # print(box_dim)
-    left_box, right_box = sort_contours(box_dim, frame)
-    center_pt, left_cx, left_cy, right_cx, right_cy = calc_midpoints(left_box, right_box, frame)
-    offset = calc_offset(center_pt, frame)
-            
-    #displaying data on image
-    height, width, _ = frame.shape
-    cv2.circle(frame, (left_cx, left_cy), 5, (0, 0, 255), 3)
-    cv2.circle(frame, (right_cx, right_cy), 5, (0, 0, 255), 3)
+        final_image, curr_angle = steer(lane_lines_image, averaged_lines, curr_angle)
+        # print(curr_angle)
+        data = float(image.get_data())
+        # if data==6 or data==2:
+        #     # print("received message: %f" % data)
 
-    if(len(left_box) > 0):           #This line is needed to drawContours the box
-        cv2.drawContours(frame, [left_box], -1, (0, 0, 255), 3) 
-    if(len(right_box) > 0):         #This line is needed to drawContours the box
-        cv2.drawContours(frame, [right_box], -1, (0, 0, 255), 3) 
+        transfer_data(curr_angle, data)
+
+        # show the frame
+        # cv2.imshow("hsv", hsv)
+        # cv2.imshow("canny result", canny_image)
+        # cv2.imshow("result2", final_image)
+        
+        # if the `q` key was pressed, break from the loop
+        if cv2.waitKey(10) & 0xFF == ord('q'):
+                break
+    cv2.destroyAllWindows()
+    image.close()
+
+if __name__ == '__main__':
+    #logging.basicConfig(level=logging.INFO)
+
+    #test_video('/home/pi/DeepPiCar/driver/data/tmp/video01')
+    #test_photo('red_line.jpg')
+    #test_photo(sys.argv[1])
+    #test_video(sys.argv[1])
     
-    cv2.circle(frame, (center_pt, right_cy), 5, (0, 0, 255), 3)
-    cv2.line(frame, (int(width/2), height), (int(width/2), 0), (0, 255, 0), 3)
-    cv2.putText(frame,'STA: {0:.2f}'.format(offset),(30,50),cv2.FONT_HERSHEY_SIMPLEX,1,(255,255,0),2,cv2.LINE_AA)
-
-    cv2.imshow('test',frame)
-
-    
-    #canny_image = detecting_edges_grayscale(lane_image)
-    
-    # averaged_lines, lane_lines_image = detect_lane(lane_image)
-    # final_image, curr_angle = steer(lane_lines_image, averaged_lines, curr_angle)
-
-    # cv2.imshow("Original image", lane_image)
-    cv2.imshow("hsv image", hsv)
-    # cv2.imshow("test", hsv[:,:,2])
-    cv2.imshow("Canny image", canny_image)
-    # cv2.imshow("Original image", image_re)
-    # cv2.imshow("final image", final_image)
-
-    # plt.imshow(image_re)
-    # plt.imshow(cv2.cvtColor(image_re, cv2.COLOR_BGR2RGB))
-    # plt.show()
-
-    cv2.waitKey(0)
-
-
-#test_photo('test_lane.jpeg')
-# test_photo('white_line.jpg')
-# test_photo('black_white_line.jpg')
-# test_video('white_line.mp4')
-# test_video('white_line_2.mp4')
-# test_video('black_line.mp4')
-# test_video('black_line_2.mp4')
-# test_video('black_line_night.mp4')
-# test_photo('red_line.jpg')
-# test_video('red_line.mp4')
-# test_video('red_line_2.mp4')
-# test_video('red_line_night.mp4')
-# test_photo('red_line_IRcam2.jpg')
-# test_photo('red_line_IRcam.jpg')
-# test_photo('red_line_IRcam3.jpg')
-# test_photo('white_line_IRcam.jpg')
-# test_photo('white_line_IRcam2.jpg')
-# test_video('red_lane.mp4')
-# test_video('red_lane_electrictape.mp4')
-# test_video('red_lane_phcam.mp4')
-# test_video('blue_lane.mp4')
-# test_photo('Drawing.jpeg')
-# test_photo('autodraw 8_25_2020.png')
-# test_video('/home/kan/Videos/SpeedLimitTestSuccess2.m4v')
-# test_photo('blue_lane.jpg')
-# test_photo('blue_lane_2.jpg')
-# test_photo('blue_lane_3.jpg')
-# test_photo('blue_lane_4.jpg')
-# test_photo('blue_lane_5.jpg')
-test_video('Curved_lane.mp4')
+    video_live()
