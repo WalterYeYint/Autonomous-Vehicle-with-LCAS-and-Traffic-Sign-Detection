@@ -12,9 +12,9 @@ from Camera import PiVideoStream
 import serial
 import time
 
-# # define serial variable for communication
-# ser = serial.Serial('/dev/ttyACM0', 9600)
-# time.sleep(2)   #Important: wait for serial at least 5 secs, otherwise false data
+# define serial variable for communication
+ser = serial.Serial('/dev/ttyACM0', 9600)
+time.sleep(2)   #Important: wait for serial at least 5 secs, otherwise false data
 
 
 ####################################################################################
@@ -175,6 +175,7 @@ def sort_contours(box_dim, frame):
 
 def calc_midpoints(left_box, right_box, frame):
     height, width, _ = frame.shape
+    left_cx, left_cy, right_cx, right_cy = 0, 0, 0, 0
 
     if(len(left_box) > 0):
         left_moment = cv2.moments(left_box)
@@ -225,6 +226,7 @@ def calc_midpoints(left_box, right_box, frame):
 def calc_offset(center_pt, frame):
     height, width, _ = frame.shape
     offset = (center_pt - (width/2)) 
+    # offset = ((width/2) - center_pt) 
     return offset
 
 ############################
@@ -250,7 +252,7 @@ def video_live():
     image.start_third_thread()
 
     # allow the camera to warmup
-    # time.sleep(8)
+    time.sleep(8)
     # capture frames from the camera
     while True:
         frame = image.read()
@@ -265,27 +267,27 @@ def video_live():
         offset = calc_offset(center_pt, frame)
         print(offset)
         
-        # #displaying data on image
-        height, width, _ = frame.shape
-        cv2.circle(frame, (left_cx, left_cy), 5, (0, 0, 255), 3)
-        cv2.circle(frame, (right_cx, right_cy), 5, (0, 0, 255), 3)
+        # # #displaying data on image
+        # height, width, _ = frame.shape
+        # cv2.circle(frame, (left_cx, left_cy), 5, (0, 0, 255), 3)
+        # cv2.circle(frame, (right_cx, right_cy), 5, (0, 0, 255), 3)
 
-        if(len(left_box) > 0):           #This line is needed to drawContours the box
-            cv2.drawContours(frame, [left_box], -1, (0, 0, 255), 3) 
-        if(len(right_box) > 0):         #This line is needed to drawContours the box
-            cv2.drawContours(frame, [right_box], -1, (0, 0, 255), 3) 
+        # if(len(left_box) > 0):           #This line is needed to drawContours the box
+        #     cv2.drawContours(frame, [left_box], -1, (0, 0, 255), 3) 
+        # if(len(right_box) > 0):         #This line is needed to drawContours the box
+        #     cv2.drawContours(frame, [right_box], -1, (0, 0, 255), 3) 
         
-        cv2.circle(frame, (center_pt, right_cy), 5, (0, 0, 255), 3)
-        cv2.line(frame, (int(width/2), height), (int(width/2), 0), (0, 255, 0), 3)
-        cv2.putText(frame,'STA: {0:.2f}'.format(offset),(30,50),cv2.FONT_HERSHEY_SIMPLEX,1,(255,255,0),2,cv2.LINE_AA)
-        cv2.imshow('test',frame)
-        cv2.imshow("cropped result", cropped_image)
+        # cv2.circle(frame, (center_pt, right_cy), 5, (0, 0, 255), 3)
+        # cv2.line(frame, (int(width/2), height), (int(width/2), 0), (0, 255, 0), 3)
+        # cv2.putText(frame,'STA: {0:.2f}'.format(offset),(30,50),cv2.FONT_HERSHEY_SIMPLEX,1,(255,255,0),2,cv2.LINE_AA)
+        # cv2.imshow('test',frame)
+        # cv2.imshow("cropped result", cropped_image)
 
         data = float(image.get_data())
         # if data==6 or data==2:
         #     # print("received message: %f" % data)
 
-        # transfer_data(offset, data)
+        transfer_data(offset, data)
 
 
         # show the frame
