@@ -13,8 +13,8 @@ import serial
 import time
 
 # define serial variable for communication
-ser = serial.Serial('/dev/ttyACM0', 9600)
-time.sleep(2)   #Important: wait for serial at least 5 secs, otherwise false data
+# ser = serial.Serial('/dev/ttyACM0', 9600)
+# time.sleep(2)   #Important: wait for serial at least 5 secs, otherwise false data
 
 
 ####################################################################################
@@ -110,7 +110,7 @@ def region_of_interest(canny):
 
 
 def find_contours(image, lane_image):
-    contours, hierarchy = cv2.findContours(image, cv2.RETR_CCOMP, cv2.CHAIN_APPROX_SIMPLE)
+    _, contours, hierarchy = cv2.findContours(image, cv2.RETR_CCOMP, cv2.CHAIN_APPROX_SIMPLE)
     box_dim = []
     for c in contours:
         # if cv2.contourArea(c) <= 50 :
@@ -280,9 +280,9 @@ def video_live():
         # if data==6 or data==2:
         #     # print("received message: %f" % data)
 
-        transfer_data(curr_angle, data)
+        # transfer_data(curr_angle, data)
 
-         cv2.imshow('test',frame)
+        cv2.imshow('test',frame)
 
         # show the frame
         # cv2.imshow("hsv", hsv)
