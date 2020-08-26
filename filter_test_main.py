@@ -128,6 +128,7 @@ def find_contours(image, lane_image):
 
 def calc_midpoints(box_dim, frame):
     box_center = []
+    height, width, _ = frame.shape
     for box in box_dim:
         moment = cv2.moments(box)
         if (moment["m00"] != 0):
@@ -138,27 +139,66 @@ def calc_midpoints(box_dim, frame):
         else:
             cx, cy = 0, 0
         box_center.append([cx, cy])
+
         cv2.circle(frame, (cx, cy), 5, (0, 0, 255), 3)
         box = np.array(box).reshape((-1,1,2)).astype(np.int32)          #This line is needed to drawContours the box
         cv2.drawContours(frame, [box], -1, (0, 0, 255), 3) 
-    # print(box_center)
+    
+    if(box_center >= 2):
+        center_pt = int((box_center[0][0] + box_center[1][0])/2)
+    else:
+        if(box_center[0][0] >= width):
+            center_pt = int((box_center[0][0] + width)/2)
+        else:
+            center_pt = int((box_center[0][0] + width)/2)
+        
+    cv2.circle(frame, (center_pt, cy), 5, (0, 0, 255), 3)
+
+    # print(box_center[0][0])
     cv2.imshow('test',frame)
+    
     return box_center
 
-def sort_contours(box_center, frame):
+def sort_contours(box_dim, frame):
     left_box = []
     right_box = []
     height, width, _ = frame.shape
-    for cx, cy in box_center:
-        print(cx, cy)
-        if(cx <= width/2):
-            left_box.append([cx, cy])
-        elif(cx > width/2):
-            right_box.append([cx, cy])
-    print("Left box=")
-    print(left_box)
-    print("Right box=")
-    print(right_box)
+    for p in box_dim:
+        p1,p2,p3,p4 = p
+        # print(p1[1],p2[1],p3[1],p4[1])
+        if(p1[0] <= width/2):
+            left_box.append(p)
+        elif(p1[0] > width/2):
+            right_box.append(p)
+    
+    # print("Left box=")
+    # print(left_box)
+    # print("Right box=")
+    # print(right_box)
+
+    
+    # left_box = np.array(left_box).reshape((-1,1,2)).astype(np.int32)          #This line is needed to drawContours the box
+    # right_box = np.array(right_box).reshape((-1,1,2)).astype(np.int32)          #This line is needed to drawContours the box
+    # cv2.drawContours(frame, [left_box], -1, (0, 0, 255), 3) 
+    # cv2.drawContours(frame, [right_box], -1, (0, 0, 255), 3) 
+
+    if(len(left_box) > 0):
+        left_box = max(left_box, key = cv2.contourArea)
+        left_box = np.array(left_box).reshape((-1,1,2)).astype(np.int32)            #This line is needed to drawContours the box
+        cv2.drawContours(frame, [left_box], -1, (0, 0, 255), 3) 
+    if(len(right_box) > 0):
+        right_box = max(right_box, key = cv2.contourArea)
+        right_box = np.array(right_box).reshape((-1,1,2)).astype(np.int32)          #This line is needed to drawContours the box
+        cv2.drawContours(frame, [right_box], -1, (0, 0, 255), 3) 
+
+    
+
+    # print("Left box=")
+    # print(left_box)
+    # print("Right box=")
+    # print(right_box)
+
+    cv2.imshow('test',frame)
     return left_box, right_box
 
 
@@ -396,7 +436,10 @@ def test_video(video_file):
             hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
             canny_image = detecting_edges(frame)
             cropped_image = region_of_interest(canny_image)
-            find_contours(cropped_image, frame)
+            box_dim = find_contours(cropped_image, frame)
+            # print(box_dim)
+            # box_center = calc_midpoints(box_dim, frame)
+            left_box, right_box = sort_contours(box_dim, frame)
             # detecting_contour(cropped_image, frame)
             
             # lines = detect_line_segments(cropped_image)
@@ -433,12 +476,11 @@ def test_photo(photo_file):
     hsv = cv2.cvtColor(lane_image, cv2.COLOR_BGR2HSV)
     canny_image = detecting_edges(lane_image)
     cropped_image = region_of_interest(canny_image)
-    box_dim = find_contours(canny_image, lane_image)
+    box_dim = find_contours(cropped_image, lane_image)
     # print(box_dim)
-    box_center = calc_midpoints(box_dim, lane_image)
-    sort_contours(box_center, lane_image)
+    # box_center = calc_midpoints(box_dim, lane_image)
+    left_box, right_box = sort_contours(box_dim, lane_image)
 
-    # cropped_image = region_of_interest(canny_image)
     # detecting_contour(cropped_image, lane_image)
     #canny_image = detecting_edges_grayscale(lane_image)
     
@@ -483,9 +525,9 @@ def test_photo(photo_file):
 # test_photo('Drawing.jpeg')
 # test_photo('autodraw 8_25_2020.png')
 # test_video('/home/kan/Videos/SpeedLimitTestSuccess2.m4v')
-test_photo('blue_lane.jpg')
+# test_photo('blue_lane.jpg')
 # test_photo('blue_lane_2.jpg')
 # test_photo('blue_lane_3.jpg')
 # test_photo('blue_lane_4.jpg')
 # test_photo('blue_lane_5.jpg')
-# test_video('Curved_lane.mp4')
+test_video('Curved_lane.mp4')
