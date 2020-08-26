@@ -12,7 +12,7 @@ from Camera import PiVideoStream
 import serial
 import time
 
-# define serial variable for communication
+# # define serial variable for communication
 # ser = serial.Serial('/dev/ttyACM0', 9600)
 # time.sleep(2)   #Important: wait for serial at least 5 secs, otherwise false data
 
@@ -243,13 +243,14 @@ def test_photo(file):
 
 def video_live():
     curr_angle = 90
+    offset = 0
     data = 9
     image = PiVideoStream((320, 240), 32).start_camera_thread()
     image.start_second_thread()
     image.start_third_thread()
 
     # allow the camera to warmup
-    time.sleep(8)
+    # time.sleep(8)
     # capture frames from the camera
     while True:
         frame = image.read()
@@ -260,9 +261,11 @@ def video_live():
         # box_center = calc_midpoints(box_dim, frame)
         left_box, right_box = sort_contours(box_dim, frame)
         center_pt, left_cx, left_cy, right_cx, right_cy = calc_midpoints(left_box, right_box, frame)
+        # print(center_pt, left_cx, left_cy, right_cx, right_cy)
         offset = calc_offset(center_pt, frame)
+        print(offset)
         
-        #displaying data on image
+        # #displaying data on image
         height, width, _ = frame.shape
         cv2.circle(frame, (left_cx, left_cy), 5, (0, 0, 255), 3)
         cv2.circle(frame, (right_cx, right_cy), 5, (0, 0, 255), 3)
@@ -275,14 +278,15 @@ def video_live():
         cv2.circle(frame, (center_pt, right_cy), 5, (0, 0, 255), 3)
         cv2.line(frame, (int(width/2), height), (int(width/2), 0), (0, 255, 0), 3)
         cv2.putText(frame,'STA: {0:.2f}'.format(offset),(30,50),cv2.FONT_HERSHEY_SIMPLEX,1,(255,255,0),2,cv2.LINE_AA)
+        cv2.imshow('test',frame)
+        cv2.imshow("cropped result", cropped_image)
 
         data = float(image.get_data())
         # if data==6 or data==2:
         #     # print("received message: %f" % data)
 
-        # transfer_data(curr_angle, data)
+        # transfer_data(offset, data)
 
-        cv2.imshow('test',frame)
 
         # show the frame
         # cv2.imshow("hsv", hsv)
