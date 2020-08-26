@@ -169,49 +169,58 @@ def sort_contours(box_dim, frame):
     return left_box, right_box
 
 def calc_midpoints(left_box, right_box, frame):
-    box_center = []
     height, width, _ = frame.shape
 
-    left_moment = cv2.moments(left_box)
-    right_moment = cv2.moments(right_box)
-    if (left_moment["m00"] != 0):
-        # Get the center x.
-        left_cx = int(left_moment["m10"]/left_moment["m00"])
-        # Get the center y.
-        left_cy = int(left_moment["m01"]/left_moment["m00"])
-    else:
-        left_cx, left_cy = 0, 0
+    if(len(left_box) > 0):
+        left_moment = cv2.moments(left_box)
+        if (left_moment["m00"] != 0):
+            # Get the center x.
+            left_cx = int(left_moment["m10"]/left_moment["m00"])
+            # Get the center y.
+            left_cy = int(left_moment["m01"]/left_moment["m00"])
+        else:
+            left_cx, left_cy = 0, 0
+
+    if(len(right_box) > 0):
+        right_moment = cv2.moments(right_box)
+        if (right_moment["m00"] != 0):
+            # Get the center x.
+            right_cx = int(right_moment["m10"]/right_moment["m00"])
+            # Get the center y.
+            right_cy = int(right_moment["m01"]/right_moment["m00"])
+        else:
+            right_cx, right_cy = width, 0
     
-    if (right_moment["m00"] != 0):
-        # Get the center x.
-        right_cx = int(right_moment["m10"]/right_moment["m00"])
-        # Get the center y.
-        right_cy = int(right_moment["m01"]/right_moment["m00"])
-    else:
-        right_cx, right_cy = width, 0
+    if(len(left_box) == 0):
+        left_cx, left_cy = 0, right_cy
+    elif(len(right_box) == 0):
+        right_cx, right_cy = width, left_cy
 
-    cv2.circle(frame, (left_cx, left_cy), 5, (0, 0, 255), 3)
-    cv2.circle(frame, (right_cx, right_cy), 5, (0, 0, 255), 3)
+    # cv2.circle(frame, (left_cx, left_cy), 5, (0, 0, 255), 3)
+    # cv2.circle(frame, (right_cx, right_cy), 5, (0, 0, 255), 3)
 
-    if(len(left_box) > 0):           #This line is needed to drawContours the box
-        cv2.drawContours(frame, [left_box], -1, (0, 0, 255), 3) 
-    if(len(right_box) > 0):         #This line is needed to drawContours the box
-        cv2.drawContours(frame, [right_box], -1, (0, 0, 255), 3) 
+    # if(len(left_box) > 0):           #This line is needed to drawContours the box
+    #     cv2.drawContours(frame, [left_box], -1, (0, 0, 255), 3) 
+    # if(len(right_box) > 0):         #This line is needed to drawContours the box
+    #     cv2.drawContours(frame, [right_box], -1, (0, 0, 255), 3) 
+
+    # print(left_cx, left_cy)
+    # print(right_cx, right_cy)
+
+    center_pt = int((left_cx + right_cx)/2)
+    # cv2.circle(frame, (center_pt, right_cy), 5, (0, 0, 255), 3)
     
-    # if(box_center >= 2):
-    #     center_pt = int((box_center[0][0] + box_center[1][0])/2)
-    # else:
-    #     if(box_center[0][0] >= width):
-    #         center_pt = int((box_center[0][0] + width)/2)
-    #     else:
-    #         center_pt = int((box_center[0][0] + width)/2)
-        
-    # cv2.circle(frame, (center_pt, cy), 5, (0, 0, 255), 3)
+    # cv2.line(frame, (int(width/2), height), (int(width/2), 0), (0, 255, 0), 3)
+    # print(height)
 
-    cv2.imshow('test',frame)
+    # cv2.imshow('test',frame)
 
+    return center_pt, left_cx, left_cy, right_cx, right_cy
 
-
+def calc_offset(center_pt, frame):
+    height, width, _ = frame.shape
+    offset = (center_pt - (width/2)) / 
+    return offset
 
 def test_video(video_file):
 # def test_video():
@@ -230,8 +239,27 @@ def test_video(video_file):
             # print(box_dim)
             # box_center = calc_midpoints(box_dim, frame)
             left_box, right_box = sort_contours(box_dim, frame)
-            # detecting_contour(cropped_image, frame)
+            center_pt, left_cx, left_cy, right_cx, right_cy = calc_midpoints(left_box, right_box, frame)
+            offset = calc_offset(center_pt, frame)
             
+            #displaying data on image
+            height, width, _ = frame.shape
+            cv2.circle(frame, (left_cx, left_cy), 5, (0, 0, 255), 3)
+            cv2.circle(frame, (right_cx, right_cy), 5, (0, 0, 255), 3)
+
+            if(len(left_box) > 0):           #This line is needed to drawContours the box
+                cv2.drawContours(frame, [left_box], -1, (0, 0, 255), 3) 
+            if(len(right_box) > 0):         #This line is needed to drawContours the box
+                cv2.drawContours(frame, [right_box], -1, (0, 0, 255), 3) 
+            
+            cv2.circle(frame, (center_pt, right_cy), 5, (0, 0, 255), 3)
+            cv2.line(frame, (int(width/2), height), (int(width/2), 0), (0, 255, 0), 3)
+            cv2.putText(frame,'STA: {0:.2f}'.format(offset),(30,50),cv2.FONT_HERSHEY_SIMPLEX,1,(255,255,0),2,cv2.LINE_AA)
+
+            cv2.imshow('test',frame)
+
+
+
             # lines = detect_line_segments(cropped_image)
             # averaged_lines = average_slope_intercept_middle_line(frame, lines)
             # final_image, curr_angle = steer(lane_lines_image, averaged_lines, curr_angle)
@@ -254,7 +282,7 @@ def test_photo(photo_file):
     image = cv2.imread(photo_file)
     # image_re = cv2.resize(image, (960, 721))
     image_re = cv2.resize(image, (320, 240))
-    lane_image = np.copy(image_re)
+    frame = np.copy(image_re)
 
     # lane_lines_image = detect_lane(lane_image)
     # cv2.imshow("lane lines", lane_lines_image)
@@ -263,15 +291,32 @@ def test_photo(photo_file):
 
     ######################################################################################
     #For testing bit by bit
-    hsv = cv2.cvtColor(lane_image, cv2.COLOR_BGR2HSV)
-    canny_image = detecting_edges(lane_image)
+    hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
+    canny_image = detecting_edges(frame)
     cropped_image = region_of_interest(canny_image)
-    box_dim = find_contours(cropped_image, lane_image)
+    box_dim = find_contours(cropped_image, frame)
     # print(box_dim)
-    left_box, right_box = sort_contours(box_dim, lane_image)
-    calc_midpoints(left_box, right_box, lane_image)
+    left_box, right_box = sort_contours(box_dim, frame)
+    center_pt, left_cx, left_cy, right_cx, right_cy = calc_midpoints(left_box, right_box, frame)
+    offset = calc_offset(center_pt, frame)
+            
+    #displaying data on image
+    height, width, _ = frame.shape
+    cv2.circle(frame, (left_cx, left_cy), 5, (0, 0, 255), 3)
+    cv2.circle(frame, (right_cx, right_cy), 5, (0, 0, 255), 3)
 
-    # detecting_contour(cropped_image, lane_image)
+    if(len(left_box) > 0):           #This line is needed to drawContours the box
+        cv2.drawContours(frame, [left_box], -1, (0, 0, 255), 3) 
+    if(len(right_box) > 0):         #This line is needed to drawContours the box
+        cv2.drawContours(frame, [right_box], -1, (0, 0, 255), 3) 
+    
+    cv2.circle(frame, (center_pt, right_cy), 5, (0, 0, 255), 3)
+    cv2.line(frame, (int(width/2), height), (int(width/2), 0), (0, 255, 0), 3)
+    cv2.putText(frame,'STA: {0:.2f}'.format(offset),(30,50),cv2.FONT_HERSHEY_SIMPLEX,1,(255,255,0),2,cv2.LINE_AA)
+
+    cv2.imshow('test',frame)
+
+    
     #canny_image = detecting_edges_grayscale(lane_image)
     
     # averaged_lines, lane_lines_image = detect_lane(lane_image)
@@ -315,9 +360,9 @@ def test_photo(photo_file):
 # test_photo('Drawing.jpeg')
 # test_photo('autodraw 8_25_2020.png')
 # test_video('/home/kan/Videos/SpeedLimitTestSuccess2.m4v')
-test_photo('blue_lane.jpg')
+# test_photo('blue_lane.jpg')
 # test_photo('blue_lane_2.jpg')
 # test_photo('blue_lane_3.jpg')
 # test_photo('blue_lane_4.jpg')
 # test_photo('blue_lane_5.jpg')
-# test_video('Curved_lane.mp4')
+test_video('Curved_lane.mp4')
