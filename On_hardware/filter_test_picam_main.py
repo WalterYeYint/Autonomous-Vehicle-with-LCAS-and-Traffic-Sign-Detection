@@ -224,7 +224,7 @@ def calc_midpoints(left_box, right_box, frame):
 
 def calc_offset(center_pt, frame):
     height, width, _ = frame.shape
-    offset = (center_pt - (width/2)) / 
+    offset = (center_pt - (width/2)) 
     return offset
 
 ############################
