@@ -311,10 +311,10 @@ def test_photo(photo_file):
         cv2.drawContours(frame, [right_box], -1, (0, 0, 255), 3) 
     
     cv2.circle(frame, (center_pt, right_cy), 5, (0, 0, 255), 3)
-    cv2.line(frame, (int(width/2), height), (int(width/2), 0), (0, 255, 0), 3)
-    cv2.putText(frame,'STA: {0:.2f}'.format(offset),(30,50),cv2.FONT_HERSHEY_SIMPLEX,1,(255,255,0),2,cv2.LINE_AA)
+    # cv2.line(frame, (int(width/2), height), (int(width/2), 0), (0, 255, 0), 3)
+    cv2.putText(frame,'Offset: {0:.2f}'.format(offset),(30,50),cv2.FONT_HERSHEY_SIMPLEX,1,(255,255,0),2,cv2.LINE_AA)
 
-    cv2.imshow('test',frame)
+    cv2.imshow('Output',frame)
 
     
     #canny_image = detecting_edges_grayscale(lane_image)
@@ -322,10 +322,10 @@ def test_photo(photo_file):
     # averaged_lines, lane_lines_image = detect_lane(lane_image)
     # final_image, curr_angle = steer(lane_lines_image, averaged_lines, curr_angle)
 
-    # cv2.imshow("Original image", lane_image)
+    cv2.imshow("Original image", image_re)
     cv2.imshow("hsv image", hsv)
     # cv2.imshow("test", hsv[:,:,2])
-    cv2.imshow("Canny image", canny_image)
+    cv2.imshow("Masked image", canny_image)
     # cv2.imshow("Original image", image_re)
     # cv2.imshow("final image", final_image)
 
@@ -333,7 +333,10 @@ def test_photo(photo_file):
     # plt.imshow(cv2.cvtColor(image_re, cv2.COLOR_BGR2RGB))
     # plt.show()
 
-    cv2.waitKey(0)
+    # cv2.waitKey(0)
+    while(True):
+        if cv2.waitKey(10) & 0xFF == ord('q'):
+            break
 
 
 #test_photo('test_lane.jpeg')
@@ -360,9 +363,9 @@ def test_photo(photo_file):
 # test_photo('Drawing.jpeg')
 # test_photo('autodraw 8_25_2020.png')
 # test_video('/home/kan/Videos/SpeedLimitTestSuccess2.m4v')
-# test_photo('blue_lane.jpg')
+test_photo('blue_lane.jpg')
 # test_photo('blue_lane_2.jpg')
 # test_photo('blue_lane_3.jpg')
 # test_photo('blue_lane_4.jpg')
 # test_photo('blue_lane_5.jpg')
-test_video('Curved_lane.mp4')
+# test_video('Curved_lane.mp4')
