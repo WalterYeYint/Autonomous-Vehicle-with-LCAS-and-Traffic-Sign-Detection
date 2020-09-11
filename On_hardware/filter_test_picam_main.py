@@ -74,8 +74,8 @@ def detecting_edges(img):
     # mask = cv2.inRange(gray, 210, 255)
 
     # Original erosion and dilation
-    mask = cv2.erode(mask, kernel, iterations=5)
-    mask = cv2.dilate(mask, kernel, iterations=9)
+    mask = cv2.erode(mask, kernel, iterations=3)
+    mask = cv2.dilate(mask, kernel, iterations=13)
 
     #cv2.imshow("mask image", mask)
 
@@ -281,6 +281,7 @@ def video_live():
         # cv2.line(frame, (int(width/2), height), (int(width/2), 0), (0, 255, 0), 3)
         # cv2.putText(frame,'STA: {0:.2f}'.format(offset),(30,50),cv2.FONT_HERSHEY_SIMPLEX,1,(255,255,0),2,cv2.LINE_AA)
         # cv2.imshow('test',frame)
+        # cv2.imshow("original result", frame)
         # cv2.imshow("cropped result", cropped_image)
 
         data = float(image.get_data())
