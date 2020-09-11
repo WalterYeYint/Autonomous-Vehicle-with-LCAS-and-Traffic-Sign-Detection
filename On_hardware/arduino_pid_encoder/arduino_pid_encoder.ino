@@ -82,8 +82,8 @@ float pinP = 0;    //pin Analog 0 for the input of the potentiometer
 float pinD = 1; 
 
 double Setpoint = 90, Input, Output;   
-int maxspeed = 150; 
-int max_ang_velocity = 255;                                   
+int maxspeed = 120; 
+int max_ang_velocity = 10;                                   
 int baseSpeed = 40;
 double Setspeed = 0;
 double Input_R = 0, Output_R = 0, Setspeed_R = 0;
@@ -123,7 +123,7 @@ void setup() {
   pinMode(13, INPUT_PULLUP);
   motorInitialize();
   Input = 90; 
-  Setspeed = 90;
+  Setspeed = 70;
   myPID.SetMode(AUTOMATIC);                                          //Set PID object myPID to AUTOMATIC 
   myPID.SetOutputLimits(-max_ang_velocity, max_ang_velocity);                                     //Set Output limits to -80 and 80 degrees. 
   PID_R.SetMode(AUTOMATIC);                                          //Set PID object myPID to AUTOMATIC 
@@ -186,8 +186,8 @@ void loop()
       }
       
       myPID.Compute();
-      Setspeed_R = Setspeed + (Output * L)/2;
-      Setspeed_L = Setspeed - (Output * L)/2;
+        Setspeed_R = Setspeed + (Output * L)/2;
+        Setspeed_L = Setspeed - (Output * L)/2;
     
       Input_R = filtered_R;
       Input_L = filtered_L;
