@@ -69,8 +69,8 @@ def detecting_edges(img):
     # mask = cv2.inRange(gray, 210, 255)
 
     # Original erosion and dilation
-    mask = cv2.erode(mask, kernel, iterations=5)
-    mask = cv2.dilate(mask, kernel, iterations=9)
+    mask = cv2.erode(mask, kernel, iterations=3)
+    mask = cv2.dilate(mask, kernel, iterations=12)
 
     #cv2.imshow("mask image", mask)
 
@@ -311,7 +311,7 @@ def test_photo(photo_file):
         cv2.drawContours(frame, [right_box], -1, (0, 0, 255), 3) 
     
     cv2.circle(frame, (center_pt, right_cy), 5, (0, 0, 255), 3)
-    # cv2.line(frame, (int(width/2), height), (int(width/2), 0), (0, 255, 0), 3)
+    cv2.line(frame, (int(width/2), height), (int(width/2), 0), (0, 255, 0), 3)
     cv2.putText(frame,'Offset: {0:.2f}'.format(offset),(30,50),cv2.FONT_HERSHEY_SIMPLEX,1,(255,255,0),2,cv2.LINE_AA)
 
     cv2.imshow('Output',frame)
@@ -363,9 +363,10 @@ def test_photo(photo_file):
 # test_photo('Drawing.jpeg')
 # test_photo('autodraw 8_25_2020.png')
 # test_video('/home/kan/Videos/SpeedLimitTestSuccess2.m4v')
-test_photo('blue_lane.jpg')
+# test_photo('blue_lane.jpg')
 # test_photo('blue_lane_2.jpg')
 # test_photo('blue_lane_3.jpg')
 # test_photo('blue_lane_4.jpg')
 # test_photo('blue_lane_5.jpg')
 # test_video('Curved_lane.mp4')
+# test_photo('dilate_erode_test.jpg')

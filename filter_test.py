@@ -345,8 +345,8 @@ def test_video(video_file):
             print(curr_angle)
             # transfer_data(curr_angle)
             # cv2.imshow("result", hsv)
-            cv2.imshow("result3", cropped_image)
-            # cv2.imshow("result2", final_image)
+            # cv2.imshow("result3", cropped_image)
+            cv2.imshow("result2", final_image)
             if cv2.waitKey(10) & 0xFF == ord('q'):
                 break
         else:
@@ -414,5 +414,7 @@ def test_photo(photo_file):
 # test_video('red_lane_electrictape.mp4')
 # test_video('red_lane_phcam.mp4')
 # test_video('blue_lane.mp4')
-# test_photo('blue_lane.jpg')
-test_video('/home/kan/Videos/SpeedLimitTestSuccess2.m4v')
+# test_photo('Drawing.jpeg')
+# test_photo('autodraw 8_25_2020.png')
+# test_video('/home/kan/Videos/SpeedLimitTestSuccess2.m4v')
+test_video('Curved_lane.mp4')

@@ -1,5 +1,8 @@
 # USAGE
 # python server.py --prototxt MobileNetSSD_deploy.prototxt --model MobileNetSSD_deploy.caffemodel --montageW 2 --montageH 2
+# To run tensorboard:
+# tensorboard --logdir=/home/kan/'Important (Back these up)'/SDCP/
+
 
 # import the necessary packages
 from datetime import datetime

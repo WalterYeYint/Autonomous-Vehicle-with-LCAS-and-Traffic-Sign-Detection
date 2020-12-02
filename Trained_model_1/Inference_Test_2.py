@@ -1,3 +1,7 @@
+# To run tensorboard:
+# tensorboard --logdir=/home/kan/'Important (Back these up)'/SDCP/
+
+
 import numpy as np
 import os
 import sys
@@ -40,7 +44,8 @@ tf.config.experimental.set_memory_growth(physical_devices[0], True)
 
 # NUM_CLASSES = 6
 
-PATH_TO_CKPT = 'frozen_inference_graph_216_imgs_31_btch.pb'
+# PATH_TO_CKPT = 'frozen_inference_graph_362_imgs_31_btch.pb'
+PATH_TO_CKPT = 'frozen_inference_graph_825_train_32_btch.pb'
 
 # List of the strings that is used to add correct label for each box.
 PATH_TO_LABELS = 'label_map_204_imgs_3000_steps.pbtxt'
@@ -115,7 +120,7 @@ def test_video(video_file):
                     np.squeeze(scores),
                     category_index,
                     min_score_thresh=.8,
-                    max_boxes_to_draw=1,
+                    max_boxes_to_draw=3,
                     use_normalized_coordinates=True,
                     line_thickness=8)
                 
@@ -215,8 +220,23 @@ def test_photo(photo_file):
 # test_video('test_stop_sign_1.mp4')
 # test_photo('test_photo_1.jpg')
 test_video('test_traffic_all.mp4')
+# test_video('youtube_stop_sign.mp4')
+# test_video('Road Signs Review Car Expert Lauren Fix.mp4')
+# test_video('Speed Limit Road Signs   Kids Educational Videos.mp4')
+# test_video('Speed Limit Signs - Driving Safety Adult Texas.mp4')
 # test_photo('stop_sign_real.jpg')
 # test_photo('speed_limit_25_real.jpg')
 # test_photo('green_traffic_light_real.jpg')
 # test_photo('red_traffic_light_real.jpeg')
 # test_photo('red_traffic_light_real_3.jpg')
+# test_photo('red_traffic_light_real_4.jpg')
+# test_photo('stop_and_red_light.jpg')
+# test_photo('speed_limit_25_30_35.jpg')
+# test_photo('speed_limit_50.png')
+# test_photo('speed_limit_35.jpg')
+# test_photo('speed_limit_35_2.jpg')
+# test_photo('unnamed.jpg')
+# test_photo('red_light_2.jpg')
+# test_photo('speed_limit_40.jpg')
+# test_photo('speed_limit_45.jpg')
+# test_photo('IMG_20200807_141054.jpg')
