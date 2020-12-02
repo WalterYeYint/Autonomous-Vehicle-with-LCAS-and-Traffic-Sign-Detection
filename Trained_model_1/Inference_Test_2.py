@@ -45,10 +45,10 @@ tf.config.experimental.set_memory_growth(physical_devices[0], True)
 # NUM_CLASSES = 6
 
 # PATH_TO_CKPT = 'frozen_inference_graph_362_imgs_31_btch.pb'
-PATH_TO_CKPT = 'frozen_inference_graph_825_train_32_btch.pb'
+PATH_TO_CKPT = 'trained_graphs_&_label_maps/frozen_inference_graph_825_train_32_btch.pb'
 
 # List of the strings that is used to add correct label for each box.
-PATH_TO_LABELS = 'label_map_204_imgs_3000_steps.pbtxt'
+PATH_TO_LABELS = 'trained_graphs_&_label_maps/label_map_204_imgs_3000_steps.pbtxt'
 
 NUM_CLASSES = 8
 
@@ -219,7 +219,7 @@ def test_photo(photo_file):
 # test_video('test_25_sign.mp4')
 # test_video('test_stop_sign_1.mp4')
 # test_photo('test_photo_1.jpg')
-test_video('test_traffic_all.mp4')
+test_video('../Test_Videos_&_Images/test_traffic_all.mp4')
 # test_video('youtube_stop_sign.mp4')
 # test_video('Road Signs Review Car Expert Lauren Fix.mp4')
 # test_video('Speed Limit Road Signs   Kids Educational Videos.mp4')
