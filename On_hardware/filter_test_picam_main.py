@@ -1,4 +1,9 @@
 #testing the lane detection using images
+# To connect to the robot : ssh pi@192.168.1.121
+# For sending files to the robot : 
+# scp filter_test_picam_main.py Camera.py client.py pi@192.168.1.121:~/Thesis-Pi-2nd
+
+
 
 import cv2
 import numpy as np
@@ -38,6 +43,16 @@ def detecting_contour(img, frame):
     cv2.drawContours(frame,[box],0,(0,0,255),3)  
     # cv2.rectangle(frame, (int(x_min), int(y_min)), (int(x_min+w_min), int(y_min+h_min)), (0,255,0),3)
     #cv2.rectangle(frame, (100, 100), (200, 200),(0,255,0),3)
+
+def warp(img, src, dst):
+	height, width, _ = img.shape
+	
+	# Perspective Transform matrix and inverse matrix
+	M = cv2.getPerspectiveTransform(src, dst)
+	Minv = cv2.getPerspectiveTransform(dst, src)
+	warped = cv2.warpPerspective(img, M, (width, height), flags=cv2.INTER_LINEAR)
+
+	return warped, Minv
 
 def detecting_edges(img):
     hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
@@ -248,40 +263,62 @@ def video_live():
     offset = 0
     data = 9
     image = PiVideoStream((320, 240), 32).start_camera_thread()
-    image.start_second_thread()
-    image.start_third_thread()
+    # image.start_second_thread()
+    # image.start_third_thread()
 
     # allow the camera to warmup
     time.sleep(8)
     # capture frames from the camera
     while True:
         frame = image.read()
-        canny_image = detecting_edges(frame)
-        cropped_image = region_of_interest(canny_image)
-        box_dim = find_contours(cropped_image, frame)
+        height, width, _ = frame.shape
+        #Source points taken from images with straight lane lines, these are to become parallel after the warp transform
+        src_offset = width * 0.2
+        src = np.float32([
+            [0+src_offset, height/2], # top-left corner
+            [width-src_offset, height/2], # top-right corner
+            [width, height], # bottom-right corner
+            [0, height], # bottom-left corner
+        ])
+        # for x in range(0,4):
+        #     cv2.circle(frame, (src[0,0], src[0,1]), 5, (0, 255, 0), 3)
+
+        # Destination points are to be parallel, taking into account the image size
+        dst = np.float32([
+            [0, 0], # top-left corner
+            [width, 0], # top-right corner
+            [width, height], # bottom-right corner
+            [0, height], # bottom-left corner
+        ])
+
+        warped_frame, Minv = warp(frame, src, dst)
+
+
+        canny_image = detecting_edges(warped_frame)
+        # cropped_image = region_of_interest(canny_image)
+        box_dim = find_contours(canny_image, warped_frame)
         # print(box_dim)
         # box_center = calc_midpoints(box_dim, frame)
-        left_box, right_box = sort_contours(box_dim, frame)
-        center_pt, left_cx, left_cy, right_cx, right_cy = calc_midpoints(left_box, right_box, frame)
+        left_box, right_box = sort_contours(box_dim, warped_frame)
+        center_pt, left_cx, left_cy, right_cx, right_cy = calc_midpoints(left_box, right_box, warped_frame)
         # print(center_pt, left_cx, left_cy, right_cx, right_cy)
-        offset = calc_offset(center_pt, frame)
+        offset = calc_offset(center_pt, warped_frame)
         print(offset)
         
         # # #displaying data on image
-        # height, width, _ = frame.shape
-        # cv2.circle(frame, (left_cx, left_cy), 5, (0, 0, 255), 3)
-        # cv2.circle(frame, (right_cx, right_cy), 5, (0, 0, 255), 3)
+        # cv2.circle(warped_frame, (left_cx, left_cy), 5, (0, 0, 255), 3)
+        # cv2.circle(warped_frame, (right_cx, right_cy), 5, (0, 0, 255), 3)
 
         # if(len(left_box) > 0):           #This line is needed to drawContours the box
-        #     cv2.drawContours(frame, [left_box], -1, (0, 0, 255), 3) 
+        #     cv2.drawContours(warped_frame, [left_box], -1, (0, 0, 255), 3) 
         # if(len(right_box) > 0):         #This line is needed to drawContours the box
-        #     cv2.drawContours(frame, [right_box], -1, (0, 0, 255), 3) 
+        #     cv2.drawContours(warped_frame, [right_box], -1, (0, 0, 255), 3) 
         
-        # cv2.circle(frame, (center_pt, right_cy), 5, (0, 0, 255), 3)
-        # cv2.line(frame, (int(width/2), height), (int(width/2), 0), (0, 255, 0), 3)
-        # cv2.putText(frame,'STA: {0:.2f}'.format(offset),(30,50),cv2.FONT_HERSHEY_SIMPLEX,1,(255,255,0),2,cv2.LINE_AA)
-        # cv2.imshow('test',frame)
-        # cv2.imshow("original result", frame)
+        # cv2.circle(warped_frame, (center_pt, right_cy), 5, (0, 0, 255), 3)
+        # cv2.line(warped_frame, (int(width/2), height), (int(width/2), 0), (0, 255, 0), 3)
+        # cv2.putText(warped_frame,'STA: {0:.2f}'.format(offset),(30,50),cv2.FONT_HERSHEY_SIMPLEX,1,(255,255,0),2,cv2.LINE_AA)
+        # cv2.imshow('test',warped_frame)
+        # cv2.imshow("original result", warped_frame)
         # cv2.imshow("cropped result", cropped_image)
 
         data = float(image.get_data())
