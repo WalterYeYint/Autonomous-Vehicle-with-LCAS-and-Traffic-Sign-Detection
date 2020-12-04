@@ -34,6 +34,16 @@ def detecting_contour(img, frame):
     # cv2.rectangle(frame, (int(x_min), int(y_min)), (int(x_min+w_min), int(y_min+h_min)), (0,255,0),3)
     #cv2.rectangle(frame, (100, 100), (200, 200),(0,255,0),3)
 
+def warp(img, src, dst):
+	height, width, _ = img.shape
+	
+	# Perspective Transform matrix and inverse matrix
+	M = cv2.getPerspectiveTransform(src, dst)
+	Minv = cv2.getPerspectiveTransform(dst, src)
+	warped = cv2.warpPerspective(img, M, (width, height), flags=cv2.INTER_LINEAR)
+
+	return warped, Minv
+
 def detecting_edges(img):
     hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
     # cv2.imshow("hsv image", hsv)
@@ -284,6 +294,31 @@ def test_photo(photo_file):
     image_re = cv2.resize(image, (320, 240))
     frame = np.copy(image_re)
 
+    height, width, _ = frame.shape
+
+    #Source points taken from images with straight lane lines, these are to become parallel after the warp transform
+    src_offset = width * 0.8
+    src = np.float32([
+        [width-src_offset, height/2], # top-left corner
+        [src_offset, height/2], # top-right corner
+        [width, height], # bottom-right corner
+        [0, height], # bottom-left corner
+    ])
+    for x in range(0,4):
+        cv2.circle(frame, (src[0,0], src[0,1]), 5, (0, 255, 0), 3)
+
+
+    # Destination points are to be parallel, taking into account the image size
+    dst = np.float32([
+        [0, 0], # top-left corner
+        [width, 0], # top-right corner
+        [width, height], # bottom-right corner
+        [0, height], # bottom-left corner
+    ])
+
+    colored_binary_warped, Minv = warp(frame, src, dst)
+    cv2.imshow('Warped Image',colored_binary_warped)
+
     # lane_lines_image = detect_lane(lane_image)
     # cv2.imshow("lane lines", lane_lines_image)
     # cv2.waitKey(0)
@@ -301,7 +336,6 @@ def test_photo(photo_file):
     offset = calc_offset(center_pt, frame)
             
     #displaying data on image
-    height, width, _ = frame.shape
     cv2.circle(frame, (left_cx, left_cy), 5, (0, 0, 255), 3)
     cv2.circle(frame, (right_cx, right_cy), 5, (0, 0, 255), 3)
 
@@ -363,10 +397,10 @@ def test_photo(photo_file):
 # test_photo('Drawing.jpeg')
 # test_photo('autodraw 8_25_2020.png')
 # test_video('/home/kan/Videos/SpeedLimitTestSuccess2.m4v')
-# test_photo('blue_lane.jpg')
+# test_photo('Test_Videos_&_Images/blue_lane.jpg')
 # test_photo('blue_lane_2.jpg')
 # test_photo('blue_lane_3.jpg')
-# test_photo('blue_lane_4.jpg')
-# test_photo('blue_lane_5.jpg')
-# test_video('Curved_lane.mp4')
+# test_photo('Test_Videos_&_Images/blue_lane_4.jpg')
+test_photo('Test_Videos_&_Images/blue_lane_5.jpg')
+# test_video('Test_Videos_&_Images/Curved_lane.mp4')
 # test_photo('dilate_erode_test.jpg')

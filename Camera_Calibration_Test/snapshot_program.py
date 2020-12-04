@@ -20,7 +20,7 @@ def snapshot_thread():
         cv2.imwrite(img_name, frame)
         print("{} written!".format(img_name))
         img_counter += 1
-        time.sleep(5)
+        time.sleep(3)
 
 
 t = threading.Thread(target=snapshot_thread, name='snapshot_thread', args=())
