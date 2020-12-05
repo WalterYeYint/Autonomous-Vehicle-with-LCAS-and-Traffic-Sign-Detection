@@ -5,7 +5,8 @@ from imutils.video import WebcamVideoStream
 import time
 import threading
 
-cam = WebcamVideoStream(src="https://192.168.1.103:8080/video").start()
+# cam = WebcamVideoStream(src="https://192.168.1.103:8080/video").start()
+cam = WebcamVideoStream(src=0).start()
 
 cv2.namedWindow("test")
 
@@ -24,7 +25,7 @@ def snapshot_thread():
 
 
 t = threading.Thread(target=snapshot_thread, name='snapshot_thread', args=())
-t.start()
+# t.start()
 
 while True:
     frame = cam.read()
