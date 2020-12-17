@@ -45,7 +45,7 @@ tf.config.experimental.set_memory_growth(physical_devices[0], True)
 # NUM_CLASSES = 6
 
 # PATH_TO_CKPT = 'frozen_inference_graph_362_imgs_31_btch.pb'
-PATH_TO_CKPT = 'trained_graphs_&_label_maps/frozen_inference_graph_825_train_32_btch.pb'
+PATH_TO_CKPT = 'trained_graphs_&_label_maps/frozen_inference_graph_825_train_32_btch_3.5k_steps_learnrate_0.001.pb'
 
 # List of the strings that is used to add correct label for each box.
 PATH_TO_LABELS = 'trained_graphs_&_label_maps/label_map_204_imgs_3000_steps.pbtxt'

@@ -73,9 +73,9 @@ float data[4];
 //pretty good value => Kp=0.62,Ki=0,Kd=0.37
 //better value => Kp=0.47,Ki=0,Kd=0.34
 
-float Kp = 0.06;        //2.5 = default, 6.5 = perfect, 26.5 = shakin                                              //Initial Proportional Gain
-float Ki = 0.03;                                                      //Initial Integral Gain
-float Kd = 0.25;   
+float Kp = 0.01;        //2.5 = default, 6.5 = perfect, 26.5 = shakin                                              //Initial Proportional Gain
+float Ki = 0.02;                                                      //Initial Integral Gain
+float Kd = 0.15;   
 
 //potentiometers pin no.s
 float pinP = 0;    //pin Analog 0 for the input of the potentiometer
@@ -166,7 +166,7 @@ void loop()
     if(traffic_class == 6 || traffic_class == 2){
       motorStop();
       
-      while(traffic_class != 3){
+      while(traffic_class != 1){
         Input_R = 0;
         Input_L = 0;
         temp_arr[0] = Input_R;
@@ -180,6 +180,12 @@ void loop()
     else{
       if(traffic_class == 3){
         Setspeed = 60;
+      }
+      else if(traffic_class == 1){
+        Setspeed = 70;
+      }
+      else if(traffic_class == 4){
+        Setspeed = 80;
       }
       else if(traffic_class == 5){
         Setspeed = 90;

@@ -45,14 +45,15 @@ def detecting_contour(img, frame):
     #cv2.rectangle(frame, (100, 100), (200, 200),(0,255,0),3)
 
 def warp(img, src, dst):
-	height, width, _ = img.shape
+    height, width, _ = img.shape
 	
-	# Perspective Transform matrix and inverse matrix
-	M = cv2.getPerspectiveTransform(src, dst)
-	Minv = cv2.getPerspectiveTransform(dst, src)
-	warped = cv2.warpPerspective(img, M, (width, height), flags=cv2.INTER_LINEAR)
-
-	return warped, Minv
+    # Perspective Transform matrix and inverse matrix
+    M = cv2.getPerspectiveTransform(src, dst)
+    # Minv = cv2.getPerspectiveTransform(dst, src)
+    warped = cv2.warpPerspective(img, M, (width, height), flags=cv2.INTER_LINEAR)
+    
+    # return warped, Minv
+    return warped
 
 def detecting_edges(img):
     hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
@@ -263,8 +264,8 @@ def video_live():
     offset = 0
     data = 9
     image = PiVideoStream((320, 240), 32).start_camera_thread()
-    # image.start_second_thread()
-    # image.start_third_thread()
+    image.start_second_thread()
+    image.start_third_thread()
 
     # allow the camera to warmup
     time.sleep(8)
@@ -291,7 +292,7 @@ def video_live():
             [0, height], # bottom-left corner
         ])
 
-        warped_frame, Minv = warp(frame, src, dst)
+        warped_frame = warp(frame, src, dst)
 
 
         canny_image = detecting_edges(warped_frame)
