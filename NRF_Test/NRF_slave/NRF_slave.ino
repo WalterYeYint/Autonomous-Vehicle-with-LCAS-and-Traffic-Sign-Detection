@@ -25,10 +25,12 @@ void loop() {
     radio.read(&temp_arr, sizeof(temp_arr));
     Serial.print(temp_arr[0]);
     Serial.print(" ");
-    Serial.print(70);
+//    Serial.print(70);
+//    Serial.print(" ");
+//    Serial.print(50);
+//    Serial.print(" ");
+    Serial.print(temp_arr[1]);
     Serial.print(" ");
-    Serial.print(50);
-    Serial.print(" ");
-    Serial.println(temp_arr[1]);
+    Serial.println(temp_arr[2]);
   }
 }

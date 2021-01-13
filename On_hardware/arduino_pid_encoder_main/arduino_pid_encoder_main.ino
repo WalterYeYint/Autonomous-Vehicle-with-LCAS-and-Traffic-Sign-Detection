@@ -105,10 +105,10 @@ PID myPID(&Input, &Output, &Setpoint, Kp, Ki, Kd, DIRECT);           //Initializ
 void setup() {
   //Initialize for NRF
   radio.begin();
-//  radio.openWritingPipe(address);
-  radio.openWritingPipe(pipes[0]);
+  radio.openWritingPipe(address);
+//  radio.openWritingPipe(pipes[0]);
   radio.setPALevel(RF24_PA_HIGH);
-  radio.setDataRate(RF24_2MBPS);
+//  radio.setDataRate(RF24_2MBPS);
   radio.stopListening();
 
   //Initialize Timer and interrupts

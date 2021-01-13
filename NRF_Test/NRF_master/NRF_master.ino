@@ -25,7 +25,8 @@ void setup() {
 void loop() {
   Kp_R = analogRead(pinP);
   Ki_R = analogRead(pinD);
-  temp_arr[0] = Kp_R;
-  temp_arr[1] = Ki_R;
+  temp_arr[0] = 150;
+  temp_arr[1] = 150;
+  temp_arr[2] = 1;
   radio.write(&temp_arr, sizeof(temp_arr));
 }
