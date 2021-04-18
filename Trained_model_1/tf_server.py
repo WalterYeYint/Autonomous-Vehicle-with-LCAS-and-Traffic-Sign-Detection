@@ -26,6 +26,8 @@ import socket
 from object_detection.utils import label_map_util
 from object_detection.utils import visualization_utils as vis_util
 
+# TF2 Fix code for "TensorFlow Failed to get convolution algorithm. \
+#  This is probably because cuDNN failed to initialize"
 physical_devices = tf.config.experimental.list_physical_devices('GPU')
 tf.config.experimental.set_memory_growth(physical_devices[0], True)
 
